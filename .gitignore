@@ -1,1 +1,24 @@
+# Environment variables
 .env
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Testing & Coverage cache
+.pytest_cache/
+.coverage
+htmlcov/
+.coverage.*
+.cache/
+
+# IDE files
+.vscode/
+.idea/
