@@ -1,10 +1,15 @@
 from typing import Optional
-from fastapi import APIRouter, Response, Request, HTTPException, status
-from app.schemas.auth import OTPRequest, OTPVerify, TokenResponse
+from fastapi import APIRouter, Response, Request, HTTPException, status, Depends
+from app.schemas.auth import OTPRequest, OTPVerify, TokenResponse, UserManualRegister, UserManualLogin  # FIXED: Imported manual schemas
 from app.services.otp_service import generate_otp, store_otp
 from app.services.email_service import send_otp_email
 from app.services.whatsapp_service import send_otp_whatsapp
-from app.services.auth_service import verify_otp_and_login, refresh_session
+from app.services.auth_service import (
+    verify_otp_and_login, 
+    refresh_session, 
+    register_manual_user,      # FIXED: Imported manual signup service
+    authenticate_manual_user   # FIXED: Imported manual login service
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -67,6 +72,44 @@ async def refresh_token(request: Request, response: Response, payload_token: Opt
         )
         
     result = await refresh_session(refresh_token)
+    return TokenResponse(
+        access_token=result["access_token"],
+        onboarding_state=result["onboarding_state"]
+    )
+
+@router.post("/signup", status_code=status.HTTP_201_CREATED, response_model=TokenResponse)
+async def manual_signup(payload: UserManualRegister, response: Response):
+    """Handles manual password registration and sets security cookies on successful account creation."""
+    result = await register_manual_user(payload)
+    
+    response.set_cookie(
+        key="refresh_token",
+        value=result["refresh_token"],
+        httponly=True,
+        secure=False,  # Set to True in HTTPS production environments
+        samesite="lax",
+        max_age=7 * 24 * 60 * 60
+    )
+    
+    return TokenResponse(
+        access_token=result["access_token"],
+        onboarding_state=result["onboarding_state"]
+    )
+
+@router.post("/login", status_code=status.HTTP_200_OK, response_model=TokenResponse)
+async def manual_login(payload: UserManualLogin, response: Response):
+    """Verifies traditional email/password credentials and yields active session JWT strings."""
+    result = await authenticate_manual_user(payload)
+    
+    response.set_cookie(
+        key="refresh_token",
+        value=result["refresh_token"],
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=7 * 24 * 60 * 60
+    )
+    
     return TokenResponse(
         access_token=result["access_token"],
         onboarding_state=result["onboarding_state"]

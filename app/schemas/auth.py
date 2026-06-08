@@ -26,6 +26,23 @@ class OTPVerify(BaseModel):
             raise ValueError("Provide only one of email or whatsapp_number, not both")
         return self
 
+class UserManualRegister(BaseModel):
+    first_name: str = Field(..., min_length=1)
+    last_name: str = Field(..., min_length=1)
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+    confirm_password: str = Field(..., min_length=8)
+    
+    @model_validator(mode="after")
+    def matching_passwords_check(self):
+        if self.password != self.confirm_password:
+            raise ValueError("Passwords do not match.")
+        return self
+
+class UserManualLogin(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=1)
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

@@ -40,6 +40,7 @@ class UserModel(BaseModel):
     id: Optional[PyObjectId] = Field(default=None, alias="_id")
     email: Optional[EmailStr] = None
     whatsapp_number: Optional[str] = None
+    password_hash: Optional[str] = None  # ADDED: For tracking traditional password records
     profile: UserProfile = Field(default_factory=UserProfile)
     onboarding_state: OnboardingState = OnboardingState.AWAITING_PROFILE
     workspace_ids: List[PyObjectId] = Field(default_factory=list)

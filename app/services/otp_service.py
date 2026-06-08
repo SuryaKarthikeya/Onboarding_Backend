@@ -32,7 +32,6 @@ async def check_rate_limit(redis: Redis, identifier: str) -> None:
         await redis.set(limit_key, 1, ex=RATE_LIMIT_TTL)
 
 async def store_otp(identifier: str, code: str) -> None:
-    """Store the OTP code in Redis caching."""
     redis = get_redis()
     await check_rate_limit(redis, identifier)
     
@@ -41,13 +40,11 @@ async def store_otp(identifier: str, code: str) -> None:
     logger.info(f"OTP cached for {identifier}")
 
 async def verify_otp_code(identifier: str, code: str) -> bool:
-    """Verify the provided code against cached OTP. Deletes the OTP on success."""
     redis = get_redis()
     otp_key = f"otp:{identifier}"
     cached_code = await redis.get(otp_key)
     
-    if cached_code and cached_code == code:
-        # OTP is valid, delete from Redis to prevent re-use
+    if cached_code and str(cached_code) == str(code):
         await redis.delete(otp_key)
         return True
     return False
