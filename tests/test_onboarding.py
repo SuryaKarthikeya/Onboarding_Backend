@@ -61,7 +61,7 @@ async def test_onboarding_workspace_creation(async_client):
         "store_name": "My Shop",
         "annual_gmv_range": "$500K - $1M",
         "primary_marketplaces": ["Shopify", "Amazon"],
-        "goals": ["Increase Profitability", "Scale Revenue"]
+        "goals": ["Increase Profitability", "Scale Revenue", "Optimize Inventory", "Save Time"]
     }
     response = await async_client.post(
         "/v1/onboarding/workspace",
