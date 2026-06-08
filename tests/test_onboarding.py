@@ -24,8 +24,7 @@ async def test_onboarding_profile_update(async_client):
     # Save profile details
     profile_data = {
         "first_name": "John",
-        "last_name": "Doe",
-        "role": "CEO"
+        "last_name": "Doe"
     }
     response = await async_client.post(
         "/v1/onboarding/profile",
@@ -53,15 +52,16 @@ async def test_onboarding_workspace_creation(async_client):
     # Transition to AWAITING_WORKSPACE first
     await async_client.post(
         "/v1/onboarding/profile",
-        json={"first_name": "John", "last_name": "Doe", "role": "CEO"},
+        json={"first_name": "John", "last_name": "Doe"},
         headers=headers
     )
     
     # Create workspace
     workspace_data = {
-        "company_name": "My Shop",
-        "website": "https://myshop.com",
-        "revenue_scale": "$100k-$500k"
+        "store_name": "My Shop",
+        "annual_gmv_range": "$500K - $1M",
+        "primary_marketplaces": ["Shopify", "Amazon"],
+        "goals": ["Increase Profitability", "Scale Revenue"]
     }
     response = await async_client.post(
         "/v1/onboarding/workspace",
@@ -71,8 +71,8 @@ async def test_onboarding_workspace_creation(async_client):
     
     assert response.status_code == 200
     data = response.json()
-    assert data["company_name"] == "My Shop"
-    assert data["website"] == "https://myshop.com"
+    assert data["store_name"] == "My Shop"
+    assert data["annual_gmv_range"] == "$500K - $1M"
     assert "id" in data
     
     # Check onboarding state is now AWAITING_INTEGRATION

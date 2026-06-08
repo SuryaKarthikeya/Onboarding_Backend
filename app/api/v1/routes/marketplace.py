@@ -2,15 +2,14 @@ from fastapi import APIRouter, Depends, Query, HTTPException, status
 from typing import Optional
 from bson import ObjectId
 from app.models.user import UserModel, OnboardingState
-from app.schemas.marketplace import WooCommerceConnect, AmazonConnect
+from app.schemas.marketplace import WooCommerceConnect
 from app.middleware.auth_middleware import get_current_user, get_optional_current_user, StateGating
 from app.core.security import verify_token
 from app.config.database import get_db
 from app.services.marketplace_service import (
     build_shopify_install_url,
     handle_shopify_oauth_callback,
-    connect_woocommerce_store,
-    connect_amazon_store
+    connect_woocommerce_store
 )
 
 router = APIRouter(prefix="/marketplace", tags=["Marketplace Integrations"])
@@ -82,20 +81,3 @@ async def woocommerce_connect(
         "status": integration.status
     }
 
-@router.post("/amazon")
-async def amazon_connect(
-    payload: AmazonConnect,
-    current_user: UserModel = Depends(StateGating([OnboardingState.AWAITING_INTEGRATION, OnboardingState.ACTIVE]))
-):
-    """Validates and stores Amazon connection credentials securely."""
-    integration = await connect_amazon_store(
-        seller_id=payload.seller_id,
-        refresh_token=payload.refresh_token,
-        marketplace_id=payload.marketplace_id,
-        user_id=str(current_user.id)
-    )
-    return {
-        "message": "Amazon integration connected successfully",
-        "integration_id": str(integration.id),
-        "status": integration.status
-    }

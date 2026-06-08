@@ -24,7 +24,6 @@ async def update_user_profile(user: UserModel, data: UserProfileUpdate) -> UserM
             "$set": {
                 "profile.first_name": data.first_name,
                 "profile.last_name": data.last_name,
-                "profile.role": data.role,
                 "onboarding_state": new_state
             }
         }
@@ -43,9 +42,10 @@ async def create_user_workspace(user: UserModel, data: WorkspaceCreate) -> Works
     
     # Create workspace object
     workspace = WorkspaceModel(
-        company_name=data.company_name,
-        website=data.website,
-        revenue_scale=data.revenue_scale,
+        store_name=data.store_name,
+        annual_gmv_range=data.annual_gmv_range,
+        primary_marketplaces=data.primary_marketplaces,
+        goals=data.goals,
         owner_id=ObjectId(user.id)
     )
     
@@ -78,11 +78,11 @@ def calculate_onboarding_status(user: UserModel):
     
     next_step = None
     if state == OnboardingState.AWAITING_PROFILE:
-        next_step = "Submit profile details (first_name, last_name, role)"
+        next_step = "Submit profile details (first_name, last_name)"
     elif state == OnboardingState.AWAITING_WORKSPACE:
-        next_step = "Create a workspace (company_name, website, revenue_scale)"
+        next_step = "Create a workspace (store_name, annual_gmv_range, primary_marketplaces, goals)"
     elif state == OnboardingState.AWAITING_INTEGRATION:
-        next_step = "Connect an integration channel (Shopify, WooCommerce, or Amazon)"
+        next_step = "Connect an integration channel (Shopify or WooCommerce)"
     elif state == OnboardingState.ACTIVE:
         next_step = "Dashboard ready"
         

@@ -34,9 +34,10 @@ async def create_workspace(
     workspace = await create_user_workspace(current_user, payload)
     return WorkspaceResponse(
         id=str(workspace.id),
-        company_name=workspace.company_name,
-        website=workspace.website,
-        revenue_scale=workspace.revenue_scale,
+        store_name=workspace.store_name,
+        annual_gmv_range=workspace.annual_gmv_range,
+        primary_marketplaces=workspace.primary_marketplaces,
+        goals=workspace.goals,
         owner_id=str(workspace.owner_id)
     )
 

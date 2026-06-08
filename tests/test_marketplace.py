@@ -19,14 +19,14 @@ async def get_awaiting_integration_headers(async_client, email: str) -> dict:
     # Transition to AWAITING_WORKSPACE
     await async_client.post(
         "/v1/onboarding/profile",
-        json={"first_name": "Test", "last_name": "User", "role": "Owner"},
+        json={"first_name": "Test", "last_name": "User"},
         headers=headers
     )
     
     # Transition to AWAITING_INTEGRATION
     await async_client.post(
         "/v1/onboarding/workspace",
-        json={"company_name": "Test Store"},
+        json={"store_name": "Test Store"},
         headers=headers
     )
     return headers
@@ -91,30 +91,7 @@ async def test_woocommerce_connect(async_client):
     assert creds["store_url"] == "https://woostore.local"
     assert creds["consumer_key"] == "mock_ck_123"
 
-@pytest.mark.asyncio
-async def test_amazon_connect(async_client):
-    headers = await get_awaiting_integration_headers(async_client, "amazon@realify.ai")
-    
-    amazon_data = {
-        "seller_id": "AMAZON_SELLER_123",
-        "refresh_token": "mock_refresh_token_abc",
-        "marketplace_id": "ATVPDKIKX0DER"
-    }
-    
-    response = await async_client.post(
-        "/v1/marketplace/amazon",
-        json=amazon_data,
-        headers=headers
-    )
-    assert response.status_code == 200
-    assert "connected successfully" in response.json()["message"]
-    
-    db = get_db()
-    integration_doc = await db.integrations.find_one({"platform": "amazon"})
-    assert integration_doc is not None
-    decrypted = decrypt_credentials(integration_doc["credentials"])
-    creds = json.loads(decrypted)
-    assert creds["seller_id"] == "AMAZON_SELLER_123"
+
 
 @pytest.mark.asyncio
 async def test_shopify_callback_real_http_flow(async_client):

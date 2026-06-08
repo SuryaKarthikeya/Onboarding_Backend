@@ -112,7 +112,7 @@ The repository is structured logically to separate concerns into specific module
 Access to endpoints is guarded dynamically using `auth_middleware.py` which evaluates the user's current `onboarding_state`.
 
 ```text
-  [ AWAITING_PROFILE ] ────► Captures first_name, last_name, and role
+  [ AWAITING_PROFILE ] ────► Captures first_name and last_name
            │
            ▼
  [ AWAITING_WORKSPACE ] ──► Registers tenant/company metadata
@@ -285,7 +285,7 @@ To protect merchant intelligence and marketplace credentials, the backend enforc
 
 | Method | Endpoint | Description | Handled By |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/v1/onboarding/profile` | Capture basic profile metadata (`first_name`, `last_name`, `role`). | `onboarding_service.py` |
+| `POST` | `/v1/onboarding/profile` | Capture basic profile metadata (`first_name`, `last_name`). | `onboarding_service.py` |
 | `POST` | `/v1/onboarding/workspace` | Setup the tenant/company context owned by the authenticated user. | `onboarding_service.py` |
 | `GET` | `/v1/onboarding/status` | Read the current onboarding state & required next actions. | `onboarding_service.py` |
 

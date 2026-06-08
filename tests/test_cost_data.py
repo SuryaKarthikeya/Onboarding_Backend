@@ -15,14 +15,14 @@ async def get_active_user_headers(async_client, email: str) -> dict:
     # Complete profile
     await async_client.post(
         "/v1/onboarding/profile",
-        json={"first_name": "Test", "last_name": "User", "role": "Owner"},
+        json={"first_name": "Test", "last_name": "User"},
         headers=headers
     )
     
     # Create workspace
     await async_client.post(
         "/v1/onboarding/workspace",
-        json={"company_name": "Test Store"},
+        json={"store_name": "Test Store"},
         headers=headers
     )
     
