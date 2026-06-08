@@ -4,8 +4,8 @@ import Sidebar from '../components/Sidebar';
 export default function ConnectMarketplaces({ onNavigate }) {
   const [connections, setConnections] = useState({
     Amazon: false,
-    Shopify: false,
-    WooCommerce: false,
+    Shopify: localStorage.getItem('shopify_connected') === 'true',
+    WooCommerce: localStorage.getItem('woocommerce_connected') === 'true',
     eBay: false,
     Walmart: false
   });
@@ -13,19 +13,34 @@ export default function ConnectMarketplaces({ onNavigate }) {
   const [skippedCost, setSkippedCost] = useState(false);
   const [costMethod, setCostMethod] = useState(null); // 'csv', 'quickbooks', 'manual'
 
+  // WooCommerce connection modal states
+  const [showWooModal, setShowWooModal] = useState(false);
+  const [wooUrl, setWooUrl] = useState('');
+  const [wooKey, setWooKey] = useState('');
+  const [wooSecret, setWooSecret] = useState('');
+  const [isWooConnecting, setIsWooConnecting] = useState(false);
+
   const toggleConnect = (name) => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      alert("A valid session is required to connect marketplaces. Please sign up or sign in.");
+      return;
+    }
+
     const isConnected = connections[name];
     if (name === 'Shopify' && !isConnected) {
-      const token = localStorage.getItem('auth_token');
-      if (token && !token.startsWith('mock_')) {
-        const shop = prompt("Enter your Shopify store myshopify.com domain:", "realify-test-store.myshopify.com");
-        if (shop) {
-          // Redirect browser to the backend callback endpoint (simulating Shopify callback auth sequence)
-          const redirectUrl = `http://localhost:8000/v1/marketplace/shopify/callback?code=mock_code&shop=${shop}&state=${token}`;
-          window.location.href = redirectUrl;
-          return;
-        }
+      const shop = prompt("Enter your Shopify store myshopify.com domain:", "realify-test-store.myshopify.com");
+      if (shop) {
+        // Redirect browser to the backend callback endpoint (simulating Shopify callback auth sequence)
+        const redirectUrl = `http://localhost:8000/v1/marketplace/shopify/callback?code=mock_code&shop=${shop}&state=${token}`;
+        window.location.href = redirectUrl;
+        return;
       }
+    }
+
+    if (name === 'WooCommerce' && !isConnected) {
+      setShowWooModal(true);
+      return;
     }
     
     // Default local state toggle (for mock mode or other brands)
@@ -36,6 +51,53 @@ export default function ConnectMarketplaces({ onNavigate }) {
     }));
     if (name === 'Shopify') {
       localStorage.setItem('shopify_connected', nextVal ? 'true' : 'false');
+    }
+    if (name === 'WooCommerce') {
+      localStorage.setItem('woocommerce_connected', nextVal ? 'true' : 'false');
+    }
+  };
+
+  const handleWooConnectSubmit = async (e) => {
+    e.preventDefault();
+    setIsWooConnecting(true);
+
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      alert('A valid session is required to connect WooCommerce. Please sign in first.');
+      setIsWooConnecting(false);
+      return;
+    }
+
+    const payload = {
+      store_url: wooUrl,
+      consumer_key: wooKey,
+      consumer_secret: wooSecret
+    };
+
+    try {
+      const response = await fetch('http://localhost:8000/v1/marketplace/woocommerce', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setConnections(prev => ({ ...prev, WooCommerce: true }));
+        localStorage.setItem('woocommerce_connected', 'true');
+        setShowWooModal(false);
+        // Navigate forward on successful connection
+        onNavigate('celebration');
+      } else {
+        alert(data.detail || 'WooCommerce connection failed');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Could not connect to the server. Please check your backend connection.');
+    } finally {
+      setIsWooConnecting(false);
     }
   };
 
@@ -234,6 +296,85 @@ export default function ConnectMarketplaces({ onNavigate }) {
           </div>
         </div>
       </main>
+
+      {/* WooCommerce Connection Modal Overlay */}
+      {showWooModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-xl p-6 shadow-2xl border border-gray-100 text-gray-900 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+              <h3 className="font-bold text-lg flex items-center gap-2 text-purple-700">
+                <span className="material-symbols-outlined text-[22px]">shopping_bag</span>
+                Connect WooCommerce
+              </h3>
+              <button 
+                type="button"
+                onClick={() => setShowWooModal(false)}
+                className="text-gray-400 hover:text-gray-600 flex items-center"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleWooConnectSubmit} className="space-y-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-gray-600" htmlFor="woo-url">Store URL</label>
+                <input 
+                  required
+                  type="url" 
+                  id="woo-url"
+                  placeholder="https://yourstore.com"
+                  value={wooUrl}
+                  onChange={(e) => setWooUrl(e.target.value)}
+                  className="border border-gray-300 rounded-custom px-3 py-2 text-sm focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-gray-600" htmlFor="woo-key">Consumer Key</label>
+                <input 
+                  required
+                  type="text" 
+                  id="woo-key"
+                  placeholder="ck_..."
+                  value={wooKey}
+                  onChange={(e) => setWooKey(e.target.value)}
+                  className="border border-gray-300 rounded-custom px-3 py-2 text-sm focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-gray-600" htmlFor="woo-secret">Consumer Secret</label>
+                <input 
+                  required
+                  type="password" 
+                  id="woo-secret"
+                  placeholder="cs_..."
+                  value={wooSecret}
+                  onChange={(e) => setWooSecret(e.target.value)}
+                  className="border border-gray-300 rounded-custom px-3 py-2 text-sm focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setShowWooModal(false)}
+                  className="px-4 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isWooConnecting}
+                  className="px-6 py-2 text-sm font-semibold text-white bg-purple-700 hover:bg-purple-800 rounded-lg shadow-sm disabled:opacity-50"
+                >
+                  {isWooConnecting ? 'Connecting...' : 'Connect Store'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

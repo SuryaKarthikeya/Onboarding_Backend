@@ -14,14 +14,63 @@ export default function App() {
     const screen = params.get('currentScreen');
     const status = params.get('status');
     const platform = params.get('platform');
+    const integration = params.get('integration');
 
+    // If screen switcher explicitly overrides the screen, skip status check
     if (screen) {
       setCurrentScreen(screen);
+      return;
     }
+
+    // Handle redirection back from Shopify connection callback
+    if (window.location.pathname.startsWith('/dashboard') || integration === 'success') {
+      localStorage.setItem('shopify_connected', 'true');
+      window.history.replaceState({}, document.title, '/');
+    }
+
     if (status === 'SUCCESS' && platform === 'shopify') {
       localStorage.setItem('shopify_connected', 'true');
-      // Clean query parameters from URL bar
       window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Restore session by querying user status from backend
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      fetch('http://localhost:8000/v1/onboarding/status', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => {
+        if (res.status === 401) {
+          localStorage.removeItem('auth_token');
+          setCurrentScreen('signup');
+        } else if (res.ok) {
+          return res.json();
+        }
+      })
+      .then(data => {
+        if (data) {
+          switch (data.onboarding_state) {
+            case 'AWAITING_PROFILE':
+            case 'AWAITING_WORKSPACE':
+              setCurrentScreen('business-profile');
+              break;
+            case 'AWAITING_INTEGRATION':
+              setCurrentScreen('connect-marketplaces');
+              break;
+            case 'ACTIVE':
+              const celebrationSeen = localStorage.getItem('celebration_seen') === 'true';
+              setCurrentScreen(celebrationSeen ? 'ready' : 'celebration');
+              break;
+            default:
+              setCurrentScreen('signup');
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching onboarding status:', err);
+      });
     }
   }, []);
 

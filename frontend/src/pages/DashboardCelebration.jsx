@@ -334,7 +334,10 @@ export default function DashboardCelebration({ onNavigate, initialFinalReady = f
                     <div className="flex justify-center">
                       <button 
                         type="button"
-                        onClick={() => alert('Welcome to your Dashboard! Connected to local backend.')}
+                        onClick={() => {
+                          localStorage.setItem('celebration_seen', 'true');
+                          alert('Welcome to your Dashboard! Connected to local backend.');
+                        }}
                         className="bg-white text-secondary px-8 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-gray-100 transition-all shadow-md active:scale-95"
                       >
                         Enter Dashboard

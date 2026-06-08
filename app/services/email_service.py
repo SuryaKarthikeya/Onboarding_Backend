@@ -7,6 +7,9 @@ logger = logging.getLogger("app.services.email_service")
 async def send_otp_email(email: str, otp_code: str) -> bool:
     """Sends OTP code via SendGrid mail/send API. Falls back to console log if key is not configured."""
     logger.info(f"Preparing to send OTP email to {email}")
+    # Always log the OTP to the console for easy developer/user testing
+    print(f"\n[OTP DISPATCH LOG] Email: {email} | Generated OTP Code: {otp_code}\n")
+    logger.info(f"[OTP DISPATCH LOG] Email: {email} | Generated OTP Code: {otp_code}")
     
     # Check if API key is configured or default placeholder
     is_mock = (
@@ -16,7 +19,6 @@ async def send_otp_email(email: str, otp_code: str) -> bool:
     )
     
     if is_mock:
-        logger.info(f"\n[MOCK EMAIL SENT] To: {email} | OTP Code: {otp_code}\n")
         return True
         
     url = "https://api.sendgrid.com/v3/mail/send"

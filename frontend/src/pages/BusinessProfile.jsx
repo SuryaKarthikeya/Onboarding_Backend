@@ -6,6 +6,33 @@ export default function BusinessProfile({ onNavigate }) {
   const [sliderVal, setSliderVal] = useState(2);
   const [selectedMarketplaces, setSelectedMarketplaces] = useState(['Walmart']); // Default selected
 
+  // Profile fields for OTP users (AWAITING_PROFILE state)
+  const [onboardingState, setOnboardingState] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+
+  React.useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    if (token && !token.startsWith('mock_')) {
+      fetch('http://localhost:8000/v1/onboarding/status', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => {
+        if (res.ok) return res.json();
+      })
+      .then(data => {
+        if (data) {
+          setOnboardingState(data.onboarding_state);
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching status in BusinessProfile:', err);
+      });
+    }
+  }, []);
+
   const gmvRanges = [
     { label: '$0 - $100K', text: '$0 - $100K' },
     { label: '$100K - $500K', text: '$100K - $500K' },
@@ -76,6 +103,33 @@ export default function BusinessProfile({ onNavigate }) {
 
     if (token && !token.startsWith('mock_')) {
       try {
+        // 1. If user is in AWAITING_PROFILE, submit profile details first
+        if (onboardingState === 'AWAITING_PROFILE') {
+          if (!firstName.trim() || !lastName.trim()) {
+            alert('Please enter your first name and last name to complete your profile.');
+            return;
+          }
+          const profileRes = await fetch('http://localhost:8000/v1/onboarding/profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              first_name: firstName,
+              last_name: lastName
+            })
+          });
+          const profileData = await profileRes.json();
+          if (!profileRes.ok) {
+            alert(profileData.detail || 'Failed to update profile details.');
+            return;
+          }
+          // Update state to allow workspace creation next
+          setOnboardingState('AWAITING_WORKSPACE');
+        }
+
+        // 2. Submit workspace setup
         const response = await fetch('http://localhost:8000/v1/onboarding/workspace', {
           method: 'POST',
           headers: {
@@ -92,11 +146,10 @@ export default function BusinessProfile({ onNavigate }) {
         }
       } catch (err) {
         console.error(err);
-        alert('Server connection issues. Proceeding using mock settings.');
-        onNavigate('connect-marketplaces');
+        alert('Could not connect to the server. Please try again.');
       }
     } else {
-      onNavigate('connect-marketplaces');
+      alert('A valid session is required to proceed. Please sign up or sign in first.');
     }
   };
 
@@ -118,6 +171,42 @@ export default function BusinessProfile({ onNavigate }) {
           {/* Form Elements */}
           <div className="space-y-10">
             
+            {/* Profile fields for OTP / signup updates */}
+            {onboardingState === 'AWAITING_PROFILE' && (
+              <section className="space-y-4 p-6 border border-[#00c38b]/20 bg-[#00c38b]/5 rounded-custom animate-in fade-in duration-200">
+                <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#00c38b]">account_circle</span>
+                  Complete Your Personal Profile
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-gray-700" htmlFor="prof-first-name">First Name</label>
+                    <input 
+                      required
+                      type="text" 
+                      id="prof-first-name" 
+                      placeholder="John" 
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="w-full border-gray-300 rounded-custom px-4 py-2.5 focus:ring-brand-accent focus:border-brand-accent text-xs bg-white text-gray-900"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-gray-700" htmlFor="prof-last-name">Last Name</label>
+                    <input 
+                      required
+                      type="text" 
+                      id="prof-last-name" 
+                      placeholder="Doe" 
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="w-full border-gray-300 rounded-custom px-4 py-2.5 focus:ring-brand-accent focus:border-brand-accent text-xs bg-white text-gray-900"
+                    />
+                  </div>
+                </div>
+              </section>
+            )}
+
             {/* Store Name Input */}
             <section data-purpose="input-group">
               <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="store-name">Store Name</label>

@@ -7,6 +7,9 @@ logger = logging.getLogger("app.services.whatsapp_service")
 async def send_otp_whatsapp(whatsapp_number: str, otp_code: str) -> bool:
     """Sends OTP code via Twilio WhatsApp API. Falls back to console log if keys are not configured."""
     logger.info(f"Preparing to send OTP WhatsApp message to {whatsapp_number}")
+    # Always log the OTP to the console for easy developer/user testing
+    print(f"\n[OTP DISPATCH LOG] WhatsApp: {whatsapp_number} | Generated OTP Code: {otp_code}\n")
+    logger.info(f"[OTP DISPATCH LOG] WhatsApp: {whatsapp_number} | Generated OTP Code: {otp_code}")
     
     # Check if Twilio is configured
     is_mock = (
@@ -18,7 +21,6 @@ async def send_otp_whatsapp(whatsapp_number: str, otp_code: str) -> bool:
     )
     
     if is_mock:
-        logger.info(f"\n[MOCK WHATSAPP SENT] To: {whatsapp_number} | OTP Code: {otp_code}\n")
         return True
         
     url = f"https://api.twilio.com/2010-04-01/Accounts/{settings.TWILIO_ACCOUNT_SID}/Messages.json"

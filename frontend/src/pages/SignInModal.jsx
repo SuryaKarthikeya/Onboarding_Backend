@@ -7,34 +7,119 @@ export default function SignInModal({ onNavigate, initialMethod = 'email' }) {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
 
+  // OTP and Bug fix states
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [validationError, setValidationError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await fetch('http://localhost:8000/v1/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: emailOrPhone,
-          password: password
-        })
-      });
-      const data = await response.json();
-      if (response.ok) {
-        localStorage.setItem('auth_token', data.access_token);
-        localStorage.setItem('user_email', emailOrPhone);
-        onNavigate('celebration');
-      } else {
-        alert(data.detail || 'Sign in failed');
+    setValidationError('');
+    setIsSubmitting(true);
+
+    if (method === 'email') {
+      try {
+        const response = await fetch('http://localhost:8000/v1/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: emailOrPhone,
+            password: password
+          })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          localStorage.setItem('auth_token', data.access_token);
+          localStorage.setItem('user_email', emailOrPhone);
+          
+          // Route matching backend state
+          if (data.onboarding_state === 'AWAITING_PROFILE' || data.onboarding_state === 'AWAITING_WORKSPACE') {
+            onNavigate('business-profile');
+          } else if (data.onboarding_state === 'AWAITING_INTEGRATION') {
+            onNavigate('connect-marketplaces');
+          } else {
+            onNavigate('celebration');
+          }
+        } else {
+          setValidationError(data.detail || 'Sign in failed');
+        }
+      } catch (err) {
+        console.error(err);
+        setValidationError('Could not connect to the server. Please check your backend connection.');
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (err) {
-      console.error(err);
-      // Fallback for offline/development testing
-      alert('Proceeding with developer mock account.');
-      localStorage.setItem('auth_token', 'mock_dev_token_123');
-      localStorage.setItem('user_email', emailOrPhone || 'demo@company.com');
-      onNavigate('celebration');
+    } else {
+      // OTP flow (email or phone)
+      const isEmail = emailOrPhone.includes('@');
+      const payload = isEmail 
+        ? { email: emailOrPhone } 
+        : { whatsapp_number: emailOrPhone.startsWith('+') ? emailOrPhone : '+91' + emailOrPhone.replace(/\D/g, '') };
+
+      if (!otpSent) {
+        try {
+          const response = await fetch('http://localhost:8000/v1/auth/request-otp', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setOtpSent(true);
+          } else {
+            setValidationError(data.detail || 'Failed to send verification code.');
+          }
+        } catch (err) {
+          console.error(err);
+          setValidationError('Could not connect to the server to send verification code. Please check your backend connection.');
+        } finally {
+          setIsSubmitting(false);
+        }
+      } else {
+        // Verify OTP
+        try {
+          const response = await fetch('http://localhost:8000/v1/auth/verify-otp', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ...payload,
+              code: otpCode
+            })
+          });
+          const data = await response.json();
+          if (response.ok) {
+            localStorage.setItem('auth_token', data.access_token);
+            if (isEmail) {
+              localStorage.setItem('user_email', emailOrPhone);
+            } else {
+              localStorage.setItem('user_phone', payload.whatsapp_number);
+            }
+            
+            // Route matching backend state
+            if (data.onboarding_state === 'AWAITING_PROFILE' || data.onboarding_state === 'AWAITING_WORKSPACE') {
+              onNavigate('business-profile');
+            } else if (data.onboarding_state === 'AWAITING_INTEGRATION') {
+              onNavigate('connect-marketplaces');
+            } else {
+              onNavigate('celebration');
+            }
+          } else {
+            setValidationError(data.detail || 'Invalid verification code.');
+          }
+        } catch (err) {
+          console.error(err);
+          setValidationError('Could not connect to the server to verify code. Please check your backend connection.');
+        } finally {
+          setIsSubmitting(false);
+        }
+      }
     }
   };
 
@@ -121,6 +206,15 @@ export default function SignInModal({ onNavigate, initialMethod = 'email' }) {
 
             {/* Login Form */}
             <form className="space-y-stack-md" onSubmit={handleSubmit}>
+              {validationError && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded text-sm text-red-700 mb-4 animate-in fade-in duration-200">
+                  <div className="flex">
+                    <span className="material-symbols-outlined mr-2 text-[20px]">error</span>
+                    <span>{validationError}</span>
+                  </div>
+                </div>
+              )}
+
               {method === 'email' ? (
                 <>
                   <div className="space-y-1">
@@ -188,37 +282,82 @@ export default function SignInModal({ onNavigate, initialMethod = 'email' }) {
                   {/* Primary Action */}
                   <button 
                     type="submit"
-                    className="w-full flex items-center justify-center gap-2 bg-on-background text-white py-4 rounded-lg font-label-md text-label-md hover:bg-on-background/90 active:scale-[0.98] transition-all mt-stack-lg shadow-lg text-sm font-semibold"
+                    disabled={isSubmitting}
+                    className="w-full flex items-center justify-center gap-2 bg-on-background text-white py-4 rounded-lg font-label-md text-label-md hover:bg-on-background/90 active:scale-[0.98] transition-all mt-stack-lg shadow-lg text-sm font-semibold disabled:opacity-50"
                   >
-                    Sign In
+                    {isSubmitting ? 'Signing In...' : 'Sign In'}
                     <span className="material-symbols-outlined font-bold text-sm">arrow_forward</span>
                   </button>
                 </>
               ) : (
                 <>
-                  <div className="space-y-1">
-                    <label className="font-label-md text-label-md text-on-surface-variant block text-xs font-semibold text-gray-600" htmlFor="phone-input">
-                      Email or Phone
-                    </label>
-                    <input 
-                      required
-                      type="text" 
-                      id="phone-input" 
-                      placeholder="Enter email or phone number" 
-                      value={emailOrPhone}
-                      onChange={(e) => setEmailOrPhone(e.target.value)}
-                      className="w-full p-4 bg-surface rounded-lg border border-outline-variant focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all font-body-md text-body-md text-sm text-gray-900"
-                    />
-                  </div>
+                  {!otpSent ? (
+                    <>
+                      <div className="space-y-1">
+                        <label className="font-label-md text-label-md text-on-surface-variant block text-xs font-semibold text-gray-600" htmlFor="phone-input">
+                          Email or Phone
+                        </label>
+                        <input 
+                          required
+                          type="text" 
+                          id="phone-input" 
+                          placeholder="Enter email or phone number" 
+                          value={emailOrPhone}
+                          onChange={(e) => setEmailOrPhone(e.target.value)}
+                          className="w-full p-4 bg-surface rounded-lg border border-outline-variant focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all font-body-md text-body-md text-sm text-gray-900"
+                        />
+                      </div>
 
-                  {/* Primary Action */}
-                  <button 
-                    type="submit"
-                    className="w-full flex items-center justify-center gap-2 bg-on-background text-white py-4 rounded-lg font-label-md text-label-md hover:bg-on-background/90 active:scale-[0.98] transition-all mt-stack-lg shadow-lg text-sm font-semibold"
-                  >
-                    Send OTP 
-                    <span className="material-symbols-outlined text-sm font-bold">send</span>
-                  </button>
+                      {/* Primary Action */}
+                      <button 
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full flex items-center justify-center gap-2 bg-on-background text-white py-4 rounded-lg font-label-md text-label-md hover:bg-on-background/90 active:scale-[0.98] transition-all mt-stack-lg shadow-lg text-sm font-semibold disabled:opacity-50"
+                      >
+                        {isSubmitting ? 'Sending...' : 'Send OTP'}
+                        <span className="material-symbols-outlined text-sm font-bold">send</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-1">
+                        <label className="font-label-md text-label-md text-on-surface-variant block text-xs font-semibold text-gray-600" htmlFor="otp-input">
+                          Verification Code
+                        </label>
+                        <input 
+                          required
+                          type="text" 
+                          id="otp-input" 
+                          maxLength={6}
+                          placeholder="Enter 6-digit code" 
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value)}
+                          className="w-full p-4 bg-surface rounded-lg border border-outline-variant focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all font-body-md text-body-md text-sm text-center font-mono tracking-widest text-lg text-gray-900"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          We sent a 6-digit verification code to {emailOrPhone}.
+                        </p>
+                      </div>
+
+                      {/* Primary Action */}
+                      <button 
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full flex items-center justify-center gap-2 bg-on-background text-white py-4 rounded-lg font-label-md text-label-md hover:bg-on-background/90 active:scale-[0.98] transition-all mt-stack-lg shadow-lg text-sm font-semibold disabled:opacity-50"
+                      >
+                        {isSubmitting ? 'Verifying...' : 'Verify OTP'}
+                        <span className="material-symbols-outlined text-sm font-bold">arrow_forward</span>
+                      </button>
+
+                      <button 
+                        type="button"
+                        onClick={() => setOtpSent(false)}
+                        className="w-full text-center text-xs text-gray-500 hover:text-gray-700 underline pt-2"
+                      >
+                        Change Email/Phone
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </form>
