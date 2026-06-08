@@ -78,3 +78,27 @@ async def test_onboarding_workspace_creation(async_client):
     # Check onboarding state is now AWAITING_INTEGRATION
     status_resp = await async_client.get("/v1/onboarding/status", headers=headers)
     assert status_resp.json()["onboarding_state"] == OnboardingState.AWAITING_INTEGRATION.value
+
+@pytest.mark.asyncio
+async def test_onboarding_workspace_invalid_goals_validation(async_client):
+    headers = await get_auth_headers(async_client, "invalid-goals@realify.ai")
+    
+    await async_client.post(
+        "/v1/onboarding/profile",
+        json={"first_name": "John", "last_name": "Doe"},
+        headers=headers
+    )
+    
+    # Incomplete goals (only 2 out of 4)
+    workspace_data = {
+        "store_name": "My Shop",
+        "annual_gmv_range": "$500K - $1M",
+        "primary_marketplaces": ["Shopify"],
+        "goals": ["Increase Profitability", "Scale Revenue"]
+    }
+    response = await async_client.post(
+        "/v1/onboarding/workspace",
+        json=workspace_data,
+        headers=headers
+    )
+    assert response.status_code == 422
