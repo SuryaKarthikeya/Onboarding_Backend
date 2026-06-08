@@ -3,7 +3,7 @@ from typing import Optional
 from bson import ObjectId
 from app.models.user import UserModel, OnboardingState
 from app.schemas.marketplace import WooCommerceConnect, AmazonConnect
-from app.middleware.auth_middleware import get_current_user, StateGating
+from app.middleware.auth_middleware import get_current_user, get_optional_current_user, StateGating
 from app.core.security import verify_token
 from app.config.database import get_db
 from app.services.marketplace_service import (
@@ -31,7 +31,7 @@ async def shopify_callback(
     code: str = Query(..., description="The OAuth authorization code"),
     state: Optional[str] = None,
     token: Optional[str] = None,
-    current_user: Optional[UserModel] = Depends(get_current_user)
+    current_user: Optional[UserModel] = Depends(get_optional_current_user)
 ):
     """OAuth callback endpoint where Shopify returns the auth code."""
     # Resolve current user from argument or query token fallback

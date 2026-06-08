@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import Depends, HTTPException, status, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from bson import ObjectId
@@ -9,10 +9,17 @@ from app.models.user import UserModel, OnboardingState
 
 logger = logging.getLogger("app.middleware.auth_middleware")
 
-security = HTTPBearer()
+# Disable auto_error to prevent immediately rejecting requests without headers (vital for OAuth callbacks)
+security = HTTPBearer(auto_error=False)
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(security)) -> UserModel:
+async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Security(security)) -> UserModel:
     """Dependency to retrieve and authenticate the current user using Bearer tokens."""
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication credentials missing",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     token = credentials.credentials
     payload = verify_token(token, expected_type="access")
     if not payload or not payload.get("sub"):
@@ -40,6 +47,26 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(
         )
         
     return UserModel(**user_doc)
+
+async def get_optional_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Security(security)) -> Optional[UserModel]:
+    """Dependency to retrieve current user if credentials are valid, returning None otherwise."""
+    if not credentials:
+        return None
+    token = credentials.credentials
+    payload = verify_token(token, expected_type="access")
+    if not payload or not payload.get("sub"):
+        return None
+        
+    user_id = payload["sub"]
+    db = get_db()
+    try:
+        user_doc = await db.users.find_one({"_id": ObjectId(user_id)})
+        if user_doc:
+            return UserModel(**user_doc)
+    except Exception:
+        pass
+    return None
+
 
 class StateGating:
     """Dependency class to check and enforce specific onboarding states."""

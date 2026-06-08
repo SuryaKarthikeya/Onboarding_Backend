@@ -98,13 +98,17 @@ async def test_sendgrid_real_http_flow(async_client):
     mock_resp.status_code = 202
     mock_resp.text = "Accepted"
     
-    with patch("app.services.email_service.httpx.AsyncClient.post", return_value=mock_resp) as mock_post:
+    mock_client = AsyncMock()
+    mock_client.__aenter__.return_value = mock_client
+    mock_client.post.return_value = mock_resp
+    
+    with patch("app.services.email_service.httpx.AsyncClient", return_value=mock_client):
         response = await async_client.post(
             "/v1/auth/request-otp",
             json={"email": "sendgrid-real@realify.ai"}
         )
         assert response.status_code == 200
-        mock_post.assert_called_once()
+        mock_client.post.assert_called_once()
         
     settings.SENDGRID_API_KEY = original_key
 
@@ -121,13 +125,17 @@ async def test_twilio_real_http_flow(async_client):
     mock_resp.status_code = 201
     mock_resp.text = "Created"
     
-    with patch("app.services.whatsapp_service.httpx.AsyncClient.post", return_value=mock_resp) as mock_post:
+    mock_client = AsyncMock()
+    mock_client.__aenter__.return_value = mock_client
+    mock_client.post.return_value = mock_resp
+    
+    with patch("app.services.whatsapp_service.httpx.AsyncClient", return_value=mock_client):
         response = await async_client.post(
             "/v1/auth/request-otp",
             json={"whatsapp_number": "+918897396632"}
         )
         assert response.status_code == 200
-        mock_post.assert_called_once()
+        mock_client.post.assert_called_once()
         
     settings.TWILIO_ACCOUNT_SID = original_sid
     settings.TWILIO_AUTH_TOKEN = original_token

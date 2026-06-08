@@ -126,54 +126,135 @@ Access to endpoints is guarded dynamically using `auth_middleware.py` which eval
 
 ---
 
-## 🚀 **Getting Started**
+## 🚀 **Getting Started & Local Setup Guide**
 
-### **Prerequisites**
-- **Python**: version 3.10 or higher.
-- **MongoDB**: A running MongoDB instance (local or Atlas cluster).
-- **Redis**: A running Redis instance (local or cloud).
+Follow these steps to configure your environment, launch external services, and run the backend locally.
 
-### **1. Clone & Set Up Environment**
+### 📋 **Prerequisites**
+Before setting up the project, make sure you have the following installed on your machine:
+*   **Python 3.10+**: Confirm your version by running `python --version` or `python3 --version`.
+*   **Docker Desktop / Docker Engine**: Needed to run the Redis server container.
+*   **MongoDB**: An active MongoDB server (can be a local instance or a free cloud-hosted MongoDB Atlas cluster).
+
+---
+
+### 🐳 **1. Run Redis Dependency via Docker Compose**
+Redis is utilized for session management, dynamic rate limiting, and OTP caching. The codebase relies on a running Redis instance. A persistent, containerized Redis image has been preconfigured using `docker-compose.yml`.
+
+To launch Redis in daemon mode:
 ```bash
-git clone <repository_url>
-cd Onboarding_Backend
+docker compose up -d
 ```
 
-Create a virtual environment and activate it:
-* **Linux/macOS:**
-  ```bash
-  python3 -m venv venv
-  source venv/bin/activate
-  ```
-* **Windows (PowerShell):**
-  ```powershell
-  python -m venv venv
-  .\venv\Scripts\Activate.ps1
-  ```
+#### **Useful Container Commands:**
+*   **Check Container Status**: Verify that the container is active and listening on port `6379`:
+    ```bash
+    docker ps --filter name=realify_redis
+    ```
+*   **Check Logs**: Inspect the Redis container output:
+    ```bash
+    docker logs realify_redis
+    ```
+*   **Stop Container**: Shutdown the Redis database container when finished:
+    ```bash
+    docker compose down
+    ```
 
-Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+> [!NOTE]
+> **Persistent Memory**: The `docker-compose.yml` mounts a Docker volume (`redis_data`) mapped to `/data` in the container. This ensures your keys, OTP states, and active rate limits persist even if the container is restarted.
 
-### **2. Environment Variables Setup**
-Copy the `.env.example` file and fill in your details:
+---
+
+### ⚙️ **2. Configure Environment Variables (`.env`)**
+
+The application requires specific configuration keys to launch. Copy the example environment template to create your localized configurations:
+
 ```bash
 cp .env.example .env
 ```
-Ensure you generate a secure 32-byte secret key for credential encryption (`ENCRYPTION_KEY`) and a secure JWT signature secret (`JWT_SECRET`). You can generate keys using Python:
-```bash
-python -c "import secrets; print(secrets.token_hex(32))"
-```
 
-### **3. Running the Server**
-Run the server locally in development mode with hot-reloading:
+Open your newly created `.env` file and configure the settings according to the details below:
+
+| Section | Environment Variable | Default / Example Value | Description |
+| :--- | :--- | :--- | :--- |
+| **API** | `PROJECT_NAME` | `"Realify AI Onboarding Backend"` | The name shown in interactive OpenAPI documents. |
+| | `DEBUG` | `true` | Enables/disables auto-reload, verbose error tracing, and raw console logging mocks. |
+| | `HOST` & `PORT` | `127.0.0.1` / `8000` | Host interface address and port the server binds to. |
+| **MongoDB** | `MONGODB_URI` | `mongodb://localhost:27017` | Standard database connection string. Can point to a cloud MongoDB Atlas URI. |
+| | `DATABASE_NAME` | `realify_onboarding` | MongoDB Database collection namespace. |
+| **Redis** | `REDIS_HOST` & `REDIS_PORT` | `127.0.0.1` / `6379` | Hostname/port matching the running Docker Compose Redis container. |
+| | `REDIS_PASSWORD` | `""` | Optional connection password if configured. Defaults to empty. |
+| | `REDIS_DB` | `0` | Redis database slot. |
+| **Security** | `JWT_SECRET` | *(See Generation Command)* | Signature key used to encrypt JWT access and refresh session tokens. |
+| | `JWT_ALGORITHM` | `HS256` | Algorithmic hashing method for JWT payloads. |
+| | `ACCESS_TOKEN_EXPIRE_MINUTES`| `30` | Expiration time frame for basic API requests. |
+| | `REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Secure refresh token duration. |
+| | `ENCRYPTION_KEY` | *(See Generation Command)* | URL-safe base64 32-byte key used for AES-256-GCM encryption of store tokens. |
+| **Third-Party** | `SENDGRID_API_KEY` | `SG.placeholder` | SendGrid integration token. Mock mode activates if left as placeholder. |
+| | `SENDGRID_FROM_EMAIL` | `noreply@realify.ai` | Verified email sender in SendGrid. |
+| | `TWILIO_ACCOUNT_SID` | `ACplaceholder` | Twilio account identifier. |
+| | `TWILIO_AUTH_TOKEN` | `placeholder` | Twilio authorization token. |
+| | `TWILIO_WHATSAPP_FROM` | `whatsapp:+14155238886` | Twilio virtual sandbox sender phone number. |
+| **E-Commerce** | `SHOPIFY_CLIENT_ID` | `placeholder` | Shopify developer client ID credentials. |
+| | `SHOPIFY_CLIENT_SECRET` | `placeholder` | Shopify developer client secret credentials. |
+| | `SHOPIFY_REDIRECT_URI` | `http://localhost:8000/v1/marketplace/shopify/callback` | Redirect webhook handler callback path. |
+
+#### 🔑 **Generating Secure Cryptographic Keys:**
+You **must** populate `JWT_SECRET` and `ENCRYPTION_KEY` with unique values for security. Run the following helper commands in your terminal to generate them:
+
+1.  **Generate a secure random JWT Secret**:
+    ```bash
+    python -c "import secrets; print(secrets.token_hex(32))"
+    ```
+2.  **Generate a valid 32-byte url-safe base64 Encryption Key**:
+    ```bash
+    python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    ```
+
+> [!TIP]
+> **Developer-Friendly Sandbox Mocking**: 
+> If `SENDGRID_API_KEY` or `TWILIO_ACCOUNT_SID` match their placeholder values (`SG.your_sendgrid_api_key_here`, `SG.placeholder`, `ACyour_twilio_account_sid`, `ACplaceholder`), the system automatically runs the OTP verification flow in **Mock Console Mode**. OTP codes will be printed directly to the FastAPI server terminal window stdout, letting you easily copy the OTP and complete logins without active integration credentials.
+
+---
+
+### 📦 **3. Set Up Virtual Environment & Dependencies**
+
+Create a localized Python environment to isolate your dependencies:
+
+*   **Linux / macOS:**
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    ```
+*   **Windows (PowerShell):**
+    ```powershell
+    python -m venv venv
+    .\venv\Scripts\Activate.ps1
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+    ```
+
+---
+
+### 🏁 **4. Running the Development Server**
+
+Once Redis is online, `.env` is fully populated, and dependencies are installed, boot up the local ASGI web gateway:
+
 ```bash
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
-Once started:
-- **Interactive Swagger Docs:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **ReDoc Alternative Docs:** [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+
+*   **Hot-Reloading**: The `--reload` flag instructs Uvicorn to monitor the workspace and automatically reload when code changes are saved.
+
+#### **Verification and Interactive Documentation:**
+Open your browser and navigate to these endpoints to verify server activity:
+*   **Interactive Swagger UI (Try Out Endpoints)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+*   **Redoc Alternative Documentation**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+*   **Root Health Check**: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+
+---
 
 ---
 
