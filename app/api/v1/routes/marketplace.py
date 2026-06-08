@@ -64,14 +64,8 @@ async def shopify_callback(
     # Run the server-to-server token swap operation
     integration = await handle_shopify_oauth_callback(shop, code, str(user.id))
     
-    return {
-        "status": "SUCCESS",
-        "message": "Shopify app handshake complete!",
-        "integration_id": str(integration.id),
-        "platform": integration.platform,
-        "connection_status": integration.status,
-        "note": "Change this back to RedirectResponse once your frontend port 3000 server is active."
-    }
+    frontend_dashboard_redirect = f"http://localhost:5173/dashboard?integration=success&id={str(integration.id)}"
+    return RedirectResponse(url=frontend_dashboard_redirect, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 @router.post("/woocommerce")
 async def woocommerce_connect(

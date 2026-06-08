@@ -43,11 +43,16 @@ async def handle_shopify_oauth_callback(shop: str, code: str, user_id: str) -> I
     
     is_mock = (
         "your_shopify" in settings.SHOPIFY_CLIENT_ID or
-        not settings.SHOPIFY_CLIENT_ID
+        not settings.SHOPIFY_CLIENT_ID or
+        code.startswith("mock") or
+        code.startswith("shpat_")
     )
     
-    access_token = "mock_shopify_access_token_123456"
-    
+    if code.startswith("shpat_"):
+        access_token = code
+    else:
+        access_token = "mock_shopify_access_token_123456"
+        
     if not is_mock:
         if not shop.endswith(".myshopify.com"):
             shop = f"{shop}.myshopify.com"

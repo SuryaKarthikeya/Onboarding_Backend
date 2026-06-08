@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     SHOPIFY_CLIENT_SECRET: str = "your_shopify_client_secret"
     SHOPIFY_REDIRECT_URI: str = "http://localhost:8000/v1/marketplace/shopify/callback"
 
+    WOOCOMMERCE_CONSUMER_KEY: str = "your_woocommerce_consumer_key"
+    WOOCOMMERCE_CONSUMER_SECRET: str = "your_woocommerce_consumer_secret"
+    WOOCOMMERCE_STORE_URL: str = "your_woocommerce_store_url"
+
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
