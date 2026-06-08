@@ -1,5 +1,5 @@
 import logging
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from redis.asyncio import Redis
 from app.config.config import settings
 
@@ -7,7 +7,7 @@ logger = logging.getLogger("app.config.database")
 
 class Database:
     client: AsyncIOMotorClient = None
-    db = None
+    db: AsyncIOMotorDatabase = None
 
 class RedisDB:
     client: Redis = None
@@ -23,13 +23,15 @@ def init_redis() -> None:
     """Initialize Redis client instance."""
     if RedisDB.client is None:
         logger.info("Initializing Redis client...")
-        if settings.REDIS_PASSWORD:
-            redis_url = f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}"
-        else:
-            redis_url = f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}"
-        RedisDB.client = Redis.from_url(redis_url, decode_responses=True)
+        RedisDB.client = Redis(
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
+            password=settings.REDIS_PASSWORD or None,
+            db=settings.REDIS_DB,
+            decode_responses=True,
+        )
 
-def get_db():
+def get_db() -> AsyncIOMotorDatabase:
     """Get the active MongoDB database instance, initializing it if necessary."""
     if Database.db is None:
         init_db()
@@ -59,7 +61,7 @@ async def close_redis() -> None:
     """Close Redis connection and clear references."""
     if RedisDB.client is not None:
         logger.info("Closing Redis client...")
-        await RedisDB.client.aclose()
+        await RedisDB.client.close()
         RedisDB.client = None
 
 async def check_connections() -> None:

@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.config.config import settings
 from app.config.database import (
     init_db,
@@ -9,9 +10,8 @@ from app.config.database import (
     close_redis,
     check_connections,
 )
+from app.api.v1 import api_v1_router
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("app.main")
 
 @asynccontextmanager
@@ -20,11 +20,10 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up FastAPI application...")
     init_db()
     init_redis()
-    try:
-        await check_connections()
-        logger.info("Successfully connected to databases (MongoDB and Redis).")
-    except Exception as e:
-        logger.error(f"Database connection check failed during startup: {e}")
+    
+    # Propagation of connection exception ensures application fails to start up on database failure
+    await check_connections()
+    logger.info("Successfully connected to databases (MongoDB and Redis).")
     
     yield
     
@@ -40,9 +39,22 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Register aggregated router
+app.include_router(api_v1_router, prefix="/v1")
+
 @app.get("/")
 async def root():
     return {
         "message": "Welcome to Realify AI Onboarding API",
         "status": "healthy"
     }
+

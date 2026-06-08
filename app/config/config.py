@@ -1,24 +1,14 @@
 import os
 from functools import lru_cache
-from typing import Optional
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-try:
-    from pydantic_settings import BaseSettings, SettingsConfigDict
-    class ConfiguredBaseSettings(BaseSettings):
-        model_config = SettingsConfigDict(
-            env_file=os.environ.get("ENV_FILE", ".env"),
-            env_file_encoding="utf-8",
-            extra="ignore"
-        )
-except ImportError:
-    from pydantic import BaseSettings as PydanticBaseSettings  # type: ignore
-    class ConfiguredBaseSettings(PydanticBaseSettings):  # type: ignore
-        class Config:
-            env_file = os.environ.get("ENV_FILE", ".env")
-            env_file_encoding = "utf-8"
-            extra = "ignore"
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=os.environ.get("ENV_FILE", ".env"),
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
 
-class Settings(ConfiguredBaseSettings):
     # API Settings
     PROJECT_NAME: str = "Realify AI Onboarding Backend"
     DEBUG: bool = True
@@ -40,7 +30,7 @@ class Settings(ConfiguredBaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    ENCRYPTION_KEY: str = "change_me_to_a_32_byte_cryptography_compatible_key="
+    ENCRYPTION_KEY: str = "23j_m6Bv1s-x42QW_Wl0z99HwXfSyyqN4W3-yVl7gIE="
 
     # SendGrid Configuration
     SENDGRID_API_KEY: str = "SG.your_sendgrid_api_key_here"
