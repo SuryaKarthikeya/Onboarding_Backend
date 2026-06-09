@@ -96,6 +96,54 @@ export default function DashboardCelebration({ onNavigate, initialFinalReady = f
     setIsFinalReady(initialFinalReady);
   }, [initialFinalReady]);
 
+  // Fetch cost status to complete checklist task automatically
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      // 1. Check if cost entries exist
+      fetch('http://localhost:8000/v1/cost-data/', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => {
+        if (res.ok) return res.json();
+      })
+      .then(data => {
+        if (data && data.length > 0) {
+          setCompletedTasks(prev => ({
+            ...prev,
+            uploadCostData: true
+          }));
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching cost entries status:', err);
+      });
+
+      // 2. Check if QuickBooks is connected
+      fetch('http://localhost:8000/v1/marketplace/quickbooks/status', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => {
+        if (res.ok) return res.json();
+      })
+      .then(data => {
+        if (data && data.connected) {
+          setCompletedTasks(prev => ({
+            ...prev,
+            uploadCostData: true
+          }));
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching QuickBooks status in Dashboard:', err);
+      });
+    }
+  }, []);
+
   const toggleTask = (taskKey) => {
     setCompletedTasks(prev => ({
       ...prev,
@@ -243,9 +291,9 @@ export default function DashboardCelebration({ onNavigate, initialFinalReady = f
                   <div className="flex items-center gap-4">
                     <button 
                       type="button"
-                      onClick={() => toggleTask('uploadCostData')}
+                      onClick={() => onNavigate('cost-data')}
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-all ${
-                        completedTasks.uploadCostData ? 'bg-primary' : 'bg-outline-variant/30 text-on-surface-variant'
+                        completedTasks.uploadCostData ? 'bg-primary animate-pulse' : 'bg-outline-variant/30 text-on-surface-variant'
                       }`}
                     >
                       {completedTasks.uploadCostData ? (
@@ -260,11 +308,18 @@ export default function DashboardCelebration({ onNavigate, initialFinalReady = f
                     </div>
                   </div>
                   {completedTasks.uploadCostData ? (
-                    <span className="text-primary text-xs font-bold">Completed</span>
+                    <button 
+                      type="button"
+                      onClick={() => onNavigate('cost-data')}
+                      className="text-primary font-bold text-xs flex items-center gap-1 hover:underline"
+                    >
+                      Completed
+                      <span className="material-symbols-outlined text-xs">edit</span>
+                    </button>
                   ) : (
                     <button 
                       type="button"
-                      onClick={() => toggleTask('uploadCostData')}
+                      onClick={() => onNavigate('cost-data')}
                       className="text-secondary font-semibold text-xs flex items-center gap-1 hover:underline"
                     >
                       Start Now 

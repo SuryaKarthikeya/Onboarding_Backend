@@ -4,6 +4,7 @@ import BusinessProfile from './pages/BusinessProfile';
 import ConnectMarketplaces from './pages/ConnectMarketplaces';
 import DashboardCelebration from './pages/DashboardCelebration';
 import SignInModal from './pages/SignInModal';
+import CostDataIngestion from './pages/CostDataIngestion';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('signup'); // 'signup', 'signup-whatsapp', 'business-profile', 'connect-marketplaces', 'celebration', 'ready', 'signin', 'signin-otp'
@@ -97,6 +98,8 @@ export default function App() {
         return <SignInModal onNavigate={setCurrentScreen} initialMethod="email" key="signin-modal-email" />;
       case 'signin-otp':
         return <SignInModal onNavigate={setCurrentScreen} initialMethod="otp" key="signin-modal-otp" />;
+      case 'cost-data':
+        return <CostDataIngestion onNavigate={setCurrentScreen} />;
       default:
         return <SignUp onNavigate={setCurrentScreen} />;
     }
@@ -111,6 +114,7 @@ export default function App() {
     { id: 'signin-otp', label: '6. Sign In Modal (OTP State)', stitchName: 'Sign In Modal - OTP State' },
     { id: 'celebration', label: '7. Setup Complete Celebration', stitchName: 'Dashboard - Setup Complete Celebration' },
     { id: 'ready', label: '8. Dashboard Final Readiness', stitchName: 'Dashboard - Final Readiness State' },
+    { id: 'cost-data', label: '9. Cost Data Ingestion', stitchName: 'Cost Ingestion Dashboard' },
   ];
 
   return (

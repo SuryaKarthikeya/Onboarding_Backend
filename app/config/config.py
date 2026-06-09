@@ -50,6 +50,10 @@ class Settings(BaseSettings):
     WOOCOMMERCE_CONSUMER_SECRET: str = "your_woocommerce_consumer_secret"
     WOOCOMMERCE_STORE_URL: str = "your_woocommerce_store_url"
 
+    QUICKBOOKS_CLIENT_ID: str = "YOUR_QB_CLIENT_ID"
+    QUICKBOOKS_CLIENT_SECRET: str = "YOUR_QB_CLIENT_SECRET"
+    QUICKBOOKS_REDIRECT_URI: str = "http://localhost:8000/v1/marketplace/quickbooks/callback"
+
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()

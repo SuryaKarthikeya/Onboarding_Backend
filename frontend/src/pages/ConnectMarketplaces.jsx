@@ -254,14 +254,10 @@ export default function ConnectMarketplaces({ onNavigate }) {
               <button 
                 type="button"
                 onClick={() => {
-                  setCostMethod('csv');
-                  setSkippedCost(false);
+                  localStorage.setItem('cost_data_active_tab', 'csv');
+                  onNavigate('cost-data');
                 }}
-                className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-xs font-semibold transition-all ${
-                  costMethod === 'csv'
-                    ? 'bg-green-50 border-green-600 text-green-700'
-                    : 'bg-white border-border-subtle text-gray-700 hover:bg-gray-50'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-xs font-semibold transition-all bg-white border-border-subtle text-gray-700 hover:bg-gray-50`}
               >
                 <span className="material-symbols-outlined text-sm text-green-600">upload_file</span>
                 Upload CSV
@@ -269,14 +265,10 @@ export default function ConnectMarketplaces({ onNavigate }) {
               <button 
                 type="button"
                 onClick={() => {
-                  setCostMethod('quickbooks');
-                  setSkippedCost(false);
+                  localStorage.setItem('cost_data_active_tab', 'quickbooks');
+                  onNavigate('cost-data');
                 }}
-                className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-xs font-semibold transition-all ${
-                  costMethod === 'quickbooks'
-                    ? 'bg-blue-50 border-blue-600 text-blue-700'
-                    : 'bg-white border-border-subtle text-gray-700 hover:bg-gray-50'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-xs font-semibold transition-all bg-white border-border-subtle text-gray-700 hover:bg-gray-50`}
               >
                 <span className="material-symbols-outlined text-sm text-blue-600">account_balance_wallet</span>
                 Connect QuickBooks
@@ -284,14 +276,10 @@ export default function ConnectMarketplaces({ onNavigate }) {
               <button 
                 type="button"
                 onClick={() => {
-                  setCostMethod('manual');
-                  setSkippedCost(false);
+                  localStorage.setItem('cost_data_active_tab', 'manual');
+                  onNavigate('cost-data');
                 }}
-                className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-xs font-semibold transition-all ${
-                  costMethod === 'manual'
-                    ? 'bg-purple-50 border-purple-600 text-purple-700'
-                    : 'bg-white border-border-subtle text-gray-700 hover:bg-gray-50'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-xs font-semibold transition-all bg-white border-border-subtle text-gray-700 hover:bg-gray-50`}
               >
                 <span className="material-symbols-outlined text-sm text-purple-600">edit_note</span>
                 Manual Entry
