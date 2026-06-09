@@ -11,11 +11,29 @@ from app.services.auth_service import (
     authenticate_manual_user   # FIXED: Imported manual login service
 )
 
+from app.config.database import get_db
+
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/request-otp", status_code=status.HTTP_200_OK)
 async def request_otp(payload: OTPRequest):
     identifier = payload.email or payload.whatsapp_number
+    
+    if payload.is_signup:
+        db = get_db()
+        query = {}
+        if payload.email:
+            query["email"] = payload.email
+        else:
+            query["whatsapp_number"] = payload.whatsapp_number
+            
+        existing_user = await db.users.find_one(query)
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="An account with this credential already exists."
+            )
+            
     code = generate_otp()
     
     # Store OTP in Redis (enforces rate-limiting)

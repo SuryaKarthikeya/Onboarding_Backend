@@ -146,3 +146,29 @@ async def test_woocommerce_connect_real_http_flow(async_client):
         assert "connected successfully" in response.json()["message"]
         mock_get.assert_called_once()
 
+@pytest.mark.asyncio
+async def test_get_connections(async_client):
+    headers = await get_awaiting_integration_headers(async_client, "connections@realify.ai")
+    
+    # Check initially connections are all False
+    response = await async_client.get("/v1/marketplace/connections", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["shopify"] is False
+    assert data["woocommerce"] is False
+    
+    # Connect Shopify
+    token = headers["Authorization"].split(" ")[1]
+    cb_resp = await async_client.get(
+        f"/v1/marketplace/shopify/callback?shop=mystore&code=authcode123&state={token}",
+        headers=headers
+    )
+    assert cb_resp.status_code == 307
+    
+    # Check connections again
+    response2 = await async_client.get("/v1/marketplace/connections", headers=headers)
+    assert response2.status_code == 200
+    data2 = response2.json()
+    assert data2["shopify"] is True
+    assert data2["woocommerce"] is False
+

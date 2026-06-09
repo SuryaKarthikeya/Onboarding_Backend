@@ -60,8 +60,12 @@ export default function App() {
               setCurrentScreen('connect-marketplaces');
               break;
             case 'ACTIVE':
-              const celebrationSeen = localStorage.getItem('celebration_seen') === 'true';
-              setCurrentScreen(celebrationSeen ? 'ready' : 'celebration');
+              if (integration === 'success') {
+                setCurrentScreen('connect-marketplaces');
+              } else {
+                const celebrationSeen = localStorage.getItem('celebration_seen') === 'true';
+                setCurrentScreen(celebrationSeen ? 'ready' : 'celebration');
+              }
               break;
             default:
               setCurrentScreen('signup');

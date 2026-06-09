@@ -44,3 +44,5 @@ class OnboardingStatusResponse(BaseModel):
     onboarding_state: OnboardingState
     is_completed: bool
     next_step: Optional[str] = None
+    profile: Optional[UserProfileResponse] = None
+    workspace: Optional[WorkspaceResponse] = None

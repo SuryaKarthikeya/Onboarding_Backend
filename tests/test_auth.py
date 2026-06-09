@@ -140,3 +140,23 @@ async def test_twilio_real_http_flow(async_client):
     settings.TWILIO_ACCOUNT_SID = original_sid
     settings.TWILIO_AUTH_TOKEN = original_token
 
+
+@pytest.mark.asyncio
+async def test_request_otp_existing_user_signup(async_client):
+    db = get_db()
+    email = "existing-otp-signup@realify.ai"
+    await db.users.insert_one({"email": email, "onboarding_state": "AWAITING_PROFILE"})
+    
+    response = await async_client.post(
+        "/v1/auth/request-otp",
+        json={"email": email, "is_signup": True}
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "An account with this credential already exists."
+    
+    response2 = await async_client.post(
+        "/v1/auth/request-otp",
+        json={"email": email, "is_signup": False}
+    )
+    assert response2.status_code == 200
+

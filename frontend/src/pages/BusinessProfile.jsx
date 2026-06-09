@@ -1,6 +1,22 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 
+const gmvRanges = [
+  { label: '$0 - $100K', text: '$0 - $100K' },
+  { label: '$100K - $500K', text: '$100K - $500K' },
+  { label: '$500K - $1M', text: '$500K - $1M' },
+  { label: '$1M - $5M', text: '$1M - $5M' },
+  { label: '$5M - $10M', text: '$5M - $10M' },
+  { label: '$10M+', text: '$10M+' }
+];
+
+const initialGoals = [
+  { id: 'profit', title: 'Increase Profitability', desc: 'Optimize pricing and reduce costs to maximize margins' },
+  { id: 'revenue', title: 'Scale Revenue', desc: 'Grow sales across channels with intelligent automation' },
+  { id: 'inventory', title: 'Optimize Inventory', desc: 'Reduce stockouts and overstock with predictive insights' },
+  { id: 'time', title: 'Save Time', desc: 'Free up resources from manual operations and reporting' }
+];
+
 export default function BusinessProfile({ onNavigate }) {
   const [storeName, setStoreName] = useState('');
   const [sliderVal, setSliderVal] = useState(2);
@@ -25,6 +41,36 @@ export default function BusinessProfile({ onNavigate }) {
       .then(data => {
         if (data) {
           setOnboardingState(data.onboarding_state);
+          if (data.profile) {
+            setFirstName(data.profile.first_name || '');
+            setLastName(data.profile.last_name || '');
+          }
+          if (data.workspace) {
+            setStoreName(data.workspace.store_name || '');
+            const rangeIndex = gmvRanges.findIndex(r => r.label === data.workspace.annual_gmv_range);
+            if (rangeIndex !== -1) {
+              setSliderVal(rangeIndex);
+            }
+            if (data.workspace.primary_marketplaces) {
+              setSelectedMarketplaces(data.workspace.primary_marketplaces);
+            }
+            if (data.workspace.goals) {
+              const goalsOrder = data.workspace.goals;
+              const reorderedGoals = [];
+              goalsOrder.forEach(title => {
+                const foundGoal = initialGoals.find(g => g.title === title);
+                if (foundGoal) {
+                  reorderedGoals.push(foundGoal);
+                }
+              });
+              initialGoals.forEach(g => {
+                if (!reorderedGoals.some(rg => rg.id === g.id)) {
+                  reorderedGoals.push(g);
+                }
+              });
+              setGoals(reorderedGoals);
+            }
+          }
         }
       })
       .catch(err => {
@@ -32,15 +78,6 @@ export default function BusinessProfile({ onNavigate }) {
       });
     }
   }, []);
-
-  const gmvRanges = [
-    { label: '$0 - $100K', text: '$0 - $100K' },
-    { label: '$100K - $500K', text: '$100K - $500K' },
-    { label: '$500K - $1M', text: '$500K - $1M' },
-    { label: '$1M - $5M', text: '$1M - $5M' },
-    { label: '$5M - $10M', text: '$5M - $10M' },
-    { label: '$10M+', text: '$10M+' }
-  ];
 
   const marketplaces = [
     { id: 'Amazon', label: 'Amazon', prefix: 'a', colorClass: 'text-orange-500 font-bold', activeClass: 'border-orange-500 bg-orange-50/50 text-orange-700' },
@@ -52,12 +89,7 @@ export default function BusinessProfile({ onNavigate }) {
   ];
 
   // Draggable Goals List
-  const [goals, setGoals] = useState([
-    { id: 'profit', title: 'Increase Profitability', desc: 'Optimize pricing and reduce costs to maximize margins' },
-    { id: 'revenue', title: 'Scale Revenue', desc: 'Grow sales across channels with intelligent automation' },
-    { id: 'inventory', title: 'Optimize Inventory', desc: 'Reduce stockouts and overstock with predictive insights' },
-    { id: 'time', title: 'Save Time', desc: 'Free up resources from manual operations and reporting' }
-  ]);
+  const [goals, setGoals] = useState(initialGoals);
 
   const [draggedIndex, setDraggedIndex] = useState(null);
 

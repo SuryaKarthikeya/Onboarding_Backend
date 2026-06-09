@@ -4,6 +4,7 @@ from typing import Optional
 class OTPRequest(BaseModel):
     email: Optional[EmailStr] = Field(None, description="Email address to send OTP to")
     whatsapp_number: Optional[str] = Field(None, description="WhatsApp number (including country code) to send OTP to")
+    is_signup: Optional[bool] = Field(False, description="Flag indicating if this request is for a new account signup")
 
     @model_validator(mode="after")
     def validate_either_email_or_whatsapp(self):

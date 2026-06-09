@@ -84,3 +84,42 @@ async def woocommerce_connect(
         "integration_id": str(integration.id),
         "status": integration.status
     }
+
+@router.get("/connections")
+async def get_connections(
+    current_user: UserModel = Depends(get_current_user)
+):
+    """Fetches the list of active marketplace integrations for the current user's workspace."""
+    if not current_user.workspace_ids:
+        return {
+            "shopify": False,
+            "woocommerce": False,
+            "amazon": False,
+            "ebay": False,
+            "walmart": False
+        }
+        
+    workspace_id = current_user.workspace_ids[0]
+    db = get_db()
+    
+    # Fetch all active integrations for this workspace (supporting both ObjectId and string formats in DB)
+    cursor = db.integrations.find({
+        "workspace_id": {"$in": [workspace_id, str(workspace_id)]},
+        "status": "active"
+    })
+    active_integrations = await cursor.to_list(length=100)
+    
+    connected_platforms = {
+        "shopify": False,
+        "woocommerce": False,
+        "amazon": False,
+        "ebay": False,
+        "walmart": False
+    }
+    
+    for integration in active_integrations:
+        platform = integration.get("platform")
+        if platform in connected_platforms:
+            connected_platforms[platform] = True
+            
+    return connected_platforms

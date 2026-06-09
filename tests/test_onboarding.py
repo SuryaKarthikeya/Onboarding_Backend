@@ -102,3 +102,52 @@ async def test_onboarding_workspace_invalid_goals_validation(async_client):
         headers=headers
     )
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_onboarding_status_statefulness(async_client):
+    headers = await get_auth_headers(async_client, "stateful-status@realify.ai")
+    
+    # Check initial status (no profile, no workspace)
+    status_resp = await async_client.get("/v1/onboarding/status", headers=headers)
+    assert status_resp.status_code == 200
+    data = status_resp.json()
+    assert data["profile"] is None
+    assert data["workspace"] is None
+    
+    # Save profile details
+    await async_client.post(
+        "/v1/onboarding/profile",
+        json={"first_name": "Bob", "last_name": "Smith"},
+        headers=headers
+    )
+    
+    # Check status (should have profile, but no workspace)
+    status_resp2 = await async_client.get("/v1/onboarding/status", headers=headers)
+    assert status_resp2.status_code == 200
+    data2 = status_resp2.json()
+    assert data2["profile"]["first_name"] == "Bob"
+    assert data2["profile"]["last_name"] == "Smith"
+    assert data2["workspace"] is None
+    
+    # Create workspace
+    workspace_data = {
+        "store_name": "Stateful Shop",
+        "annual_gmv_range": "$1M - $5M",
+        "primary_marketplaces": ["Shopify"],
+        "goals": ["Increase Profitability", "Scale Revenue", "Optimize Inventory", "Save Time"]
+    }
+    await async_client.post(
+        "/v1/onboarding/workspace",
+        json=workspace_data,
+        headers=headers
+    )
+    
+    # Check status (should have both profile and workspace)
+    status_resp3 = await async_client.get("/v1/onboarding/status", headers=headers)
+    assert status_resp3.status_code == 200
+    data3 = status_resp3.json()
+    assert data3["profile"]["first_name"] == "Bob"
+    assert data3["workspace"]["store_name"] == "Stateful Shop"
+    assert data3["workspace"]["annual_gmv_range"] == "$1M - $5M"
+    assert data3["workspace"]["primary_marketplaces"] == ["Shopify"]

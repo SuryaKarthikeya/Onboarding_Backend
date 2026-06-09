@@ -71,7 +71,7 @@ async def create_user_workspace(user: UserModel, data: WorkspaceCreate) -> Works
     logger.info(f"Workspace {workspace_id} created for user {user.id}. State set to {new_state}")
     return workspace
 
-def calculate_onboarding_status(user: UserModel):
+async def calculate_onboarding_status(user: UserModel):
     """Calculates status and instructions for current onboarding state."""
     state = user.onboarding_state
     is_completed = (state == OnboardingState.ACTIVE)
@@ -86,8 +86,31 @@ def calculate_onboarding_status(user: UserModel):
     elif state == OnboardingState.ACTIVE:
         next_step = "Dashboard ready"
         
+    profile_data = None
+    if user.profile and (user.profile.first_name or user.profile.last_name):
+        profile_data = {
+            "first_name": user.profile.first_name,
+            "last_name": user.profile.last_name
+        }
+        
+    workspace_data = None
+    if user.workspace_ids:
+        db = get_db()
+        workspace_doc = await db.workspaces.find_one({"_id": user.workspace_ids[0]})
+        if workspace_doc:
+            workspace_data = {
+                "id": str(workspace_doc["_id"]),
+                "store_name": workspace_doc.get("store_name", ""),
+                "annual_gmv_range": workspace_doc.get("annual_gmv_range"),
+                "primary_marketplaces": workspace_doc.get("primary_marketplaces", []),
+                "goals": workspace_doc.get("goals", []),
+                "owner_id": str(workspace_doc.get("owner_id")) if workspace_doc.get("owner_id") else ""
+            }
+            
     return {
         "onboarding_state": state,
         "is_completed": is_completed,
-        "next_step": next_step
+        "next_step": next_step,
+        "profile": profile_data,
+        "workspace": workspace_data
     }

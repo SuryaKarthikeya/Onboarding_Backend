@@ -22,7 +22,7 @@ async def update_profile(
 ):
     """Saves user profile metadata and moves onboarding status forward."""
     updated_user = await update_user_profile(current_user, payload)
-    status_data = calculate_onboarding_status(updated_user)
+    status_data = await calculate_onboarding_status(updated_user)
     return OnboardingStatusResponse(**status_data)
 
 @router.post("/workspace", response_model=WorkspaceResponse)
@@ -44,5 +44,5 @@ async def create_workspace(
 @router.get("/status", response_model=OnboardingStatusResponse)
 async def get_status(current_user: UserModel = Depends(get_current_user)):
     """Fetch user onboarding completion status and instructions."""
-    status_data = calculate_onboarding_status(current_user)
+    status_data = await calculate_onboarding_status(current_user)
     return OnboardingStatusResponse(**status_data)

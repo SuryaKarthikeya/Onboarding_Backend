@@ -20,6 +20,37 @@ export default function ConnectMarketplaces({ onNavigate }) {
   const [wooSecret, setWooSecret] = useState('');
   const [isWooConnecting, setIsWooConnecting] = useState(false);
 
+  React.useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      fetch('http://localhost:8000/v1/marketplace/connections', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => {
+        if (res.ok) return res.json();
+      })
+      .then(data => {
+        if (data) {
+          setConnections({
+            Amazon: data.amazon || false,
+            Shopify: data.shopify || false,
+            WooCommerce: data.woocommerce || false,
+            eBay: data.ebay || false,
+            Walmart: data.walmart || false
+          });
+          // Sync back to localStorage for compatibility
+          localStorage.setItem('shopify_connected', data.shopify ? 'true' : 'false');
+          localStorage.setItem('woocommerce_connected', data.woocommerce ? 'true' : 'false');
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching marketplace connections:', err);
+      });
+    }
+  }, []);
+
   const toggleConnect = (name) => {
     const token = localStorage.getItem('auth_token');
     if (!token) {
@@ -108,8 +139,6 @@ export default function ConnectMarketplaces({ onNavigate }) {
         setConnections(prev => ({ ...prev, WooCommerce: true }));
         localStorage.setItem('woocommerce_connected', 'true');
         setShowWooModal(false);
-        // Navigate forward on successful connection
-        onNavigate('celebration');
       } else {
         alert(data.detail || 'WooCommerce connection failed');
       }

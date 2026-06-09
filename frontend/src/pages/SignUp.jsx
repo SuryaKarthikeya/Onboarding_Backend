@@ -67,6 +67,13 @@ export default function SignUp({ onNavigate, initialMethod = 'email' }) {
           } else if (typeof data.detail === 'string') {
             errorMsg = data.detail;
           }
+          
+          if (errorMsg.includes("already exists")) {
+            alert("An account with this email address already exists. Redirecting to Sign In...");
+            onNavigate('signin');
+            return;
+          }
+          
           setValidationError(errorMsg);
         }
       } catch (err) {
@@ -88,13 +95,19 @@ export default function SignUp({ onNavigate, initialMethod = 'email' }) {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              whatsapp_number: fullPhone
+              whatsapp_number: fullPhone,
+              is_signup: true
             })
           });
           const data = await response.json();
           if (response.ok) {
             setOtpSent(true);
           } else {
+            if (data.detail && data.detail.includes("already exists")) {
+              alert("An account with this phone number already exists. Redirecting to Sign In...");
+              onNavigate('signin');
+              return;
+            }
             setValidationError(data.detail || 'Failed to send OTP. Please check the number.');
           }
         } catch (err) {
