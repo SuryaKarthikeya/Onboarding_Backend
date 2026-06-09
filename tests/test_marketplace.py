@@ -46,13 +46,14 @@ async def test_shopify_install(async_client):
 @pytest.mark.asyncio
 async def test_shopify_callback(async_client):
     headers = await get_awaiting_integration_headers(async_client, "shopify-cb@realify.ai")
+    token = headers["Authorization"].split(" ")[1]
     
     response = await async_client.get(
-        "/v1/marketplace/shopify/callback?shop=mystore&code=authcode123",
+        f"/v1/marketplace/shopify/callback?shop=mystore&code=authcode123&state={token}",
         headers=headers
     )
-    assert response.status_code == 200
-    assert "connected successfully" in response.json()["message"]
+    assert response.status_code == 307
+    assert "integration=success" in response.headers["location"]
     
     # Check onboarding state has transitioned to ACTIVE
     status_resp = await async_client.get("/v1/onboarding/status", headers=headers)
@@ -103,6 +104,7 @@ async def test_shopify_callback_real_http_flow(async_client):
     settings.SHOPIFY_CLIENT_SECRET = "active_client_secret"
     
     headers = await get_awaiting_integration_headers(async_client, "shopify-real@realify.ai")
+    token = headers["Authorization"].split(" ")[1]
     
     mock_resp = AsyncMock()
     mock_resp.status_code = 200
@@ -110,10 +112,11 @@ async def test_shopify_callback_real_http_flow(async_client):
     
     with patch("app.services.marketplace_service.httpx.AsyncClient.post", return_value=mock_resp) as mock_post:
         response = await async_client.get(
-            "/v1/marketplace/shopify/callback?shop=mystore&code=authcode123",
+            f"/v1/marketplace/shopify/callback?shop=mystore&code=authcode123&state={token}",
             headers=headers
         )
-        assert response.status_code == 200
+        assert response.status_code == 307
+        assert "integration=success" in response.headers["location"]
         mock_post.assert_called_once()
         
     settings.SHOPIFY_CLIENT_ID = original_id

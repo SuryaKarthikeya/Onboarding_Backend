@@ -31,9 +31,29 @@ export default function ConnectMarketplaces({ onNavigate }) {
     if (name === 'Shopify' && !isConnected) {
       const shop = prompt("Enter your Shopify store myshopify.com domain:", "realify-test-store.myshopify.com");
       if (shop) {
-        // Redirect browser to the backend callback endpoint (simulating Shopify callback auth sequence)
-        const redirectUrl = `http://localhost:8000/v1/marketplace/shopify/callback?code=mock_code&shop=${shop}&state=${token}`;
-        window.location.href = redirectUrl;
+        // Fetch the installation URL from the backend and redirect to the real Shopify login page
+        fetch(`http://localhost:8000/v1/marketplace/shopify/install?shop=${shop}&state=${token}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        .then(res => {
+          if (!res.ok) {
+            return res.json().then(err => { throw new Error(err.detail || 'Failed to get install URL') });
+          }
+          return res.json();
+        })
+        .then(data => {
+          if (data.install_url) {
+            window.location.href = data.install_url;
+          } else {
+            alert('Invalid install URL received');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert(`Error: ${err.message}`);
+        });
         return;
       }
     }
