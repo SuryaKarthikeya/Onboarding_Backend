@@ -47,13 +47,16 @@ export default function Sidebar({ activeStep }) {
             const isCompleted = activeStep > stepNum;
             const isActive = activeStep === stepNum;
             const isUpcoming = activeStep < stepNum;
+            const isLineGreen = activeStep > stepNum;
 
             return (
-              <div key={stepNum} className="flex gap-4 relative">
+              <div key={stepNum} className="flex gap-4 relative transition-all duration-300">
                 {/* Visual connectors */}
                 {index < steps.length - 1 && (
                   <div 
-                    className="absolute left-[15px] top-[32px] w-[2px] bg-[#374151]"
+                    className={`absolute left-[15px] top-[32px] w-[2px] transition-all duration-550 ${
+                      isLineGreen ? 'bg-[#00c38b]' : 'bg-[#374151]'
+                    }`}
                     style={{ height: 'calc(100% + 8px)' }}
                   />
                 )}
@@ -61,28 +64,28 @@ export default function Sidebar({ activeStep }) {
                 {/* Step Circle */}
                 <div className="relative z-10 shrink-0">
                   {isCompleted ? (
-                    <div className="w-8 h-8 rounded-full bg-[#00c38b] flex items-center justify-center text-white">
-                      <span className="material-symbols-outlined text-sm font-bold">check</span>
+                    <div className="w-8 h-8 rounded-full bg-[#00c38b] flex items-center justify-center text-white transition-all duration-500 scale-100 shadow-md shadow-[#00c38b]/20">
+                      <span className="material-symbols-outlined text-sm font-bold animate-fade-in">check</span>
                     </div>
                   ) : isActive ? (
-                    <div className="w-8 h-8 rounded-full bg-white text-[#1e2532] flex items-center justify-center font-bold text-sm">
+                    <div className="w-8 h-8 rounded-full bg-white text-[#1e2532] flex items-center justify-center font-bold text-sm animate-step-pulse transition-all duration-500 scale-105 shadow-lg shadow-white/25">
                       {stepNum}
                     </div>
                   ) : (
-                    <div className="w-8 h-8 rounded-full border-2 border-gray-600 text-gray-500 bg-[#1e2532] flex items-center justify-center font-bold text-sm">
+                    <div className="w-8 h-8 rounded-full border-2 border-gray-600 text-gray-500 bg-[#1e2532] flex items-center justify-center font-bold text-sm transition-all duration-500 scale-95">
                       {stepNum}
                     </div>
                   )}
                 </div>
 
                 {/* Step Content */}
-                <div>
-                  <h3 className={`font-semibold text-sm ${
-                    isActive ? "text-white" : isCompleted ? "text-white/80" : "text-white/40"
+                <div className="transition-all duration-300">
+                  <h3 className={`font-semibold text-sm transition-all duration-300 ${
+                    isActive ? "text-white translate-x-0.5 font-bold" : isCompleted ? "text-white/80" : "text-white/40"
                   }`}>
                     {step.title}
                   </h3>
-                  <p className={`text-xs mt-1 leading-relaxed ${
+                  <p className={`text-xs mt-1 leading-relaxed transition-all duration-300 ${
                     isActive ? "text-white/60" : isCompleted ? "text-white/50" : "text-white/20"
                   }`}>
                     {step.description}

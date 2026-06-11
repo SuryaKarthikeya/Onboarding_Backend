@@ -5,6 +5,7 @@ import ConnectMarketplaces from './pages/ConnectMarketplaces';
 import DashboardCelebration from './pages/DashboardCelebration';
 import SignInModal from './pages/SignInModal';
 import CostDataIngestion from './pages/CostDataIngestion';
+import WhatsAppModal from './pages/WhatsAppModal';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('signup'); // 'signup', 'signup-whatsapp', 'business-profile', 'connect-marketplaces', 'celebration', 'ready', 'signin', 'signin-otp'
@@ -81,11 +82,28 @@ export default function App() {
 
   // Router simulator
   const renderScreen = () => {
+    // If the screen is any of the signup/signin/whatsapp screens, render SignUp as base and overlay the modals
+    const isSignupBase = ['signup', 'signup-whatsapp', 'signin', 'signin-otp'].includes(currentScreen);
+
+    if (isSignupBase) {
+      return (
+        <div className="relative min-h-screen">
+          <SignUp onNavigate={setCurrentScreen} initialMethod="email" key="signup-base" />
+          {currentScreen === 'signup-whatsapp' && (
+            <WhatsAppModal onNavigate={setCurrentScreen} key="signup-wa-modal" />
+          )}
+          {(currentScreen === 'signin' || currentScreen === 'signin-otp') && (
+            <SignInModal 
+              onNavigate={setCurrentScreen} 
+              initialMethod={currentScreen === 'signin' ? 'email' : 'otp'} 
+              key={`signin-modal-${currentScreen}`} 
+            />
+          )}
+        </div>
+      );
+    }
+
     switch (currentScreen) {
-      case 'signup':
-        return <SignUp onNavigate={setCurrentScreen} initialMethod="email" key="signup-email" />;
-      case 'signup-whatsapp':
-        return <SignUp onNavigate={setCurrentScreen} initialMethod="whatsapp" key="signup-wa" />;
       case 'business-profile':
         return <BusinessProfile onNavigate={setCurrentScreen} />;
       case 'connect-marketplaces':
@@ -94,10 +112,6 @@ export default function App() {
         return <DashboardCelebration onNavigate={setCurrentScreen} initialFinalReady={false} key="celebration-normal" />;
       case 'ready':
         return <DashboardCelebration onNavigate={setCurrentScreen} initialFinalReady={true} key="celebration-ready" />;
-      case 'signin':
-        return <SignInModal onNavigate={setCurrentScreen} initialMethod="email" key="signin-modal-email" />;
-      case 'signin-otp':
-        return <SignInModal onNavigate={setCurrentScreen} initialMethod="otp" key="signin-modal-otp" />;
       case 'cost-data':
         return <CostDataIngestion onNavigate={setCurrentScreen} />;
       default:
