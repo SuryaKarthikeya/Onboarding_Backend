@@ -220,7 +220,7 @@ export default function SignInModal({ onNavigate, initialMethod = 'email' }) {
             )}
 
             {method === 'email' ? (
-              <>
+              <div className="space-y-4 animate-fade-in">
                 <div className="space-y-1">
                   <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide" htmlFor="email-input">
                     Email Address
@@ -292,11 +292,11 @@ export default function SignInModal({ onNavigate, initialMethod = 'email' }) {
                   {isSubmitting ? 'Signing In...' : 'Sign In'}
                   <span className="material-symbols-outlined font-bold text-sm">arrow_forward</span>
                 </button>
-              </>
+              </div>
             ) : (
-              <>
+              <div className="space-y-4 animate-fade-in">
                 {!otpSent ? (
-                  <>
+                  <div className="space-y-4 animate-fade-in">
                     <div className="space-y-1">
                       <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide" htmlFor="phone-input">
                         Email or Phone
@@ -321,9 +321,9 @@ export default function SignInModal({ onNavigate, initialMethod = 'email' }) {
                       {isSubmitting ? 'Sending...' : 'Send OTP'}
                       <span className="material-symbols-outlined text-sm font-bold">send</span>
                     </button>
-                  </>
+                  </div>
                 ) : (
-                  <>
+                  <div className="space-y-4 animate-fade-in">
                     <div className="space-y-1">
                       <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide" htmlFor="otp-input">
                         Verification Code
@@ -356,13 +356,13 @@ export default function SignInModal({ onNavigate, initialMethod = 'email' }) {
                     <button 
                       type="button"
                       onClick={() => setOtpSent(false)}
-                      className="w-full text-center text-xs text-gray-400 hover:text-gray-600 font-medium underline py-1 mt-2"
+                      className="w-full text-center text-xs text-gray-400 hover:text-gray-600 font-medium underline py-1 mt-2 cursor-pointer"
                     >
                       Change Email/Phone
                     </button>
-                  </>
+                  </div>
                 )}
-              </>
+              </div>
             )}
           </form>
         </div>

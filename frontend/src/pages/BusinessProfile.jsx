@@ -192,7 +192,7 @@ export default function BusinessProfile({ onNavigate }) {
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-8 md:p-12 bg-white flex justify-center text-gray-900">
-        <div className="max-w-3xl w-full" data-purpose="form-container">
+        <div className="max-w-3xl w-full animate-fade-in-up" data-purpose="form-container">
           
           {/* Section Header */}
           <header className="mb-10">
@@ -293,10 +293,10 @@ export default function BusinessProfile({ onNavigate }) {
                       key={m.id}
                       type="button"
                       onClick={() => toggleMarketplace(m.id)}
-                      className={`flex items-center gap-2 px-4 py-2 border rounded-full text-sm transition-all hover:bg-gray-50 ${
+                      className={`flex items-center gap-2 px-4 py-2 border rounded-full text-sm transition-all duration-200 ease-[var(--ease-out-expo)] hover:-translate-y-0.5 hover:shadow-sm active:scale-95 cursor-pointer ${
                         isSelected 
-                          ? m.activeClass + ' border-2 shadow-sm font-medium' 
-                          : 'border-gray-300 text-gray-700'
+                          ? m.activeClass + ' border-2 shadow-sm font-semibold' 
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                       }`}
                     >
                       {m.prefix === 'star' ? (
@@ -329,8 +329,8 @@ export default function BusinessProfile({ onNavigate }) {
                     onDragStart={() => handleDragStart(index)}
                     onDragOver={(e) => handleDragOver(e, index)}
                     onDragEnd={handleDragEnd}
-                    className={`flex items-center gap-4 p-4 border border-gray-200 rounded-custom hover:shadow-sm bg-white cursor-move group transition-all duration-150 ${
-                      draggedIndex === index ? 'opacity-40 border-dashed border-brand-accent' : ''
+                    className={`flex items-center gap-4 p-4 border border-gray-200 rounded-custom hover:shadow-md hover:border-brand-accent/50 bg-white cursor-move group transition-all duration-250 ease-[var(--ease-out-expo)] hover:-translate-y-0.5 active:scale-[0.98] ${
+                      draggedIndex === index ? 'opacity-40 border-dashed border-brand-accent bg-gray-50/50' : ''
                     }`}
                   >
                     <div className="flex items-center gap-3">

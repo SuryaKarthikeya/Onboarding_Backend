@@ -322,7 +322,7 @@ export default function CostDataIngestion({ onNavigate }) {
           </div>
         )}
 
-        <div className="w-full max-w-5xl py-12 px-6 md:px-12 space-y-8">
+        <div className="w-full max-w-5xl py-12 px-6 md:px-12 space-y-8 animate-fade-in-up">
 
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200/60 pb-6">
@@ -353,7 +353,7 @@ export default function CostDataIngestion({ onNavigate }) {
                 <button
                   type="button"
                   onClick={() => setActiveTab('manual')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${activeTab === 'manual'
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-300 ease-[var(--ease-out-expo)] active:scale-95 cursor-pointer ${activeTab === 'manual'
                       ? 'bg-primary text-white shadow-sm'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
@@ -364,7 +364,7 @@ export default function CostDataIngestion({ onNavigate }) {
                 <button
                   type="button"
                   onClick={() => setActiveTab('csv')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${activeTab === 'csv'
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-300 ease-[var(--ease-out-expo)] active:scale-95 cursor-pointer ${activeTab === 'csv'
                       ? 'bg-primary text-white shadow-sm'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
@@ -375,7 +375,7 @@ export default function CostDataIngestion({ onNavigate }) {
                 <button
                   type="button"
                   onClick={() => setActiveTab('quickbooks')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${activeTab === 'quickbooks'
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-300 ease-[var(--ease-out-expo)] active:scale-95 cursor-pointer ${activeTab === 'quickbooks'
                       ? 'bg-primary text-white shadow-sm'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
@@ -488,11 +488,11 @@ export default function CostDataIngestion({ onNavigate }) {
                       onDragOver={handleDrag}
                       onDragLeave={handleDrag}
                       onDrop={handleDrop}
-                      className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${dragActive
-                          ? 'border-primary bg-primary/5 scale-[1.01]'
+                      className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ease-[var(--ease-out-back)] ${dragActive
+                          ? 'border-primary bg-primary/5 scale-[1.02] shadow-lg shadow-primary/5'
                           : file
                             ? 'border-green-300 bg-green-50/5'
-                            : 'border-gray-300 hover:border-gray-400 bg-[#fbfbfe]'
+                            : 'border-gray-300 hover:border-brand-accent/50 hover:bg-gray-50/50 bg-[#fbfbfe]'
                         }`}
                     >
                       <input

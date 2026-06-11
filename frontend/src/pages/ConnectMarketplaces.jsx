@@ -193,14 +193,14 @@ export default function ConnectMarketplaces({ onNavigate }) {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col items-center bg-white overflow-y-auto text-gray-900" data-purpose="main-content">
-        <div className="w-full max-w-2xl py-12 px-8">
+        <div className="w-full max-w-2xl py-12 px-8 animate-fade-in-up">
           
           {/* Marketplace Connections Title */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Connect Your Marketplaces</h2>
             <p className="text-sm text-gray-500">Link your sales channels to start syncing data and generating insights</p>
           </div>
-
+ 
           {/* Marketplace list */}
           <div className="space-y-4 mb-8" data-purpose="marketplace-list">
             {marketplacesList.map((market) => {
@@ -208,15 +208,15 @@ export default function ConnectMarketplaces({ onNavigate }) {
               return (
                 <div 
                   key={market.name} 
-                  className={`flex items-center justify-between p-4 border rounded-custom hover:shadow-sm transition-all duration-200 ${
-                    isConnected ? 'border-green-300 bg-green-50/10' : 'border-border-subtle'
+                  className={`flex items-center justify-between p-4 border rounded-custom hover:shadow-md hover:border-brand-accent/30 group transition-all duration-300 ease-[var(--ease-out-expo)] hover:-translate-y-0.5 ${
+                    isConnected ? 'border-green-300 bg-green-50/10 shadow-sm shadow-green-150/5' : 'border-border-subtle'
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 ${market.bgColor} rounded-lg flex items-center justify-center p-2`}>
+                    <div className={`w-12 h-12 ${market.bgColor} rounded-lg flex items-center justify-center p-2 overflow-hidden`}>
                       <img 
                         alt={`${market.name} Logo`} 
-                        className="w-full h-full object-contain" 
+                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 ease-[var(--ease-out-back)]" 
                         src={market.logoUrl}
                       />
                     </div>
@@ -229,7 +229,7 @@ export default function ConnectMarketplaces({ onNavigate }) {
                   <button 
                     type="button"
                     onClick={() => toggleConnect(market.name)}
-                    className={`px-6 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
+                    className={`px-6 py-2 rounded-lg text-xs font-bold transition-all duration-200 ease-[var(--ease-out-expo)] hover:scale-105 active:scale-95 cursor-pointer ${
                       isConnected 
                         ? 'bg-green-600 text-white hover:bg-green-700' 
                         : 'bg-[#2d2d2d] text-white hover:bg-black'

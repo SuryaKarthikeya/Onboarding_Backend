@@ -182,7 +182,7 @@ export default function DashboardCelebration({ onNavigate, initialFinalReady = f
             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary-container rounded-full blur-[100px]"></div>
           </div>
 
-          <div className="w-full max-w-[800px] z-10 text-center space-y-12 pb-16">
+          <div className="w-full max-w-[800px] z-10 text-center space-y-12 pb-16 animate-fade-in-up">
             
             {/* Header section */}
             <div className="space-y-4">
@@ -196,10 +196,10 @@ export default function DashboardCelebration({ onNavigate, initialFinalReady = f
               <h2 className="font-headline-lg text-headline-lg text-on-background">Welcome to Your Command Center!</h2>
               <p className="font-body-md text-body-md text-on-surface-variant">Your Intelligence dashboard is ready with powerful AI-driven tools and insights</p>
             </div>
-
+ 
             {/* Feature Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-              <div className="p-6 bg-secondary-container/10 border border-secondary/20 rounded-xl hover:shadow-sm transition-all">
+              <div className="p-6 bg-secondary-container/10 border border-secondary/20 rounded-xl hover:shadow-md hover:-translate-y-1 hover:bg-secondary-container/15 active:scale-[0.99] transition-all duration-300 ease-[var(--ease-out-expo)]">
                 <div className="w-12 h-12 bg-secondary-container rounded-lg flex items-center justify-center text-white mb-4">
                   <span className="material-symbols-outlined text-[22px]">monitoring</span>
                 </div>
@@ -208,8 +208,8 @@ export default function DashboardCelebration({ onNavigate, initialFinalReady = f
                   Monitor your revenue, margins, and performance across all marketplaces in one unified dashboard.
                 </p>
               </div>
-
-              <div className="p-6 bg-primary-container/10 border border-primary/20 rounded-xl hover:shadow-sm transition-all">
+ 
+              <div className="p-6 bg-primary-container/10 border border-primary/20 rounded-xl hover:shadow-md hover:-translate-y-1 hover:bg-primary-container/15 active:scale-[0.99] transition-all duration-300 ease-[var(--ease-out-expo)]">
                 <div className="w-12 h-12 bg-primary-container rounded-lg flex items-center justify-center text-white mb-4">
                   <span className="material-symbols-outlined text-[22px]">smart_toy</span>
                 </div>
@@ -218,8 +218,8 @@ export default function DashboardCelebration({ onNavigate, initialFinalReady = f
                   Get automated recommendations for pricing, inventory, and marketing from our AI-powered agents.
                 </p>
               </div>
-
-              <div className="p-6 bg-primary-fixed/20 border border-primary-fixed/50 rounded-xl hover:shadow-sm transition-all">
+ 
+              <div className="p-6 bg-primary-fixed/20 border border-primary-fixed/50 rounded-xl hover:shadow-md hover:-translate-y-1 hover:bg-primary-fixed/25 active:scale-[0.99] transition-all duration-300 ease-[var(--ease-out-expo)]">
                 <div className="w-12 h-12 bg-[#64fcbf] rounded-lg flex items-center justify-center text-[#005138] mb-4">
                   <span className="material-symbols-outlined text-[22px]">notifications_active</span>
                 </div>
@@ -228,8 +228,8 @@ export default function DashboardCelebration({ onNavigate, initialFinalReady = f
                   Receive instant notifications about stockouts, pricing changes, and opportunities to optimize.
                 </p>
               </div>
-
-              <div className="p-6 bg-tertiary-container/10 border border-tertiary/20 rounded-xl hover:shadow-sm transition-all">
+ 
+              <div className="p-6 bg-tertiary-container/10 border border-tertiary/20 rounded-xl hover:shadow-md hover:-translate-y-1 hover:bg-tertiary-container/15 active:scale-[0.99] transition-all duration-300 ease-[var(--ease-out-expo)]">
                 <div className="w-12 h-12 bg-tertiary-container rounded-lg flex items-center justify-center text-on-tertiary mb-4">
                   <span className="material-symbols-outlined text-[22px]">inventory_2</span>
                 </div>
