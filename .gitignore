@@ -22,3 +22,5 @@ htmlcov/
 # IDE files
 .vscode/
 .idea/
+
+.gemini
